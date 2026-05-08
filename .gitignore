@@ -2,6 +2,7 @@
 build/
 out/
 .idea/
+.intellijPlatform/
 *.iml
 *.iws
 *.ipr

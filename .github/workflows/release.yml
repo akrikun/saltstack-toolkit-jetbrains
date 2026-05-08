@@ -1,0 +1,82 @@
+name: Release
+
+# Triggered on every push to `main`. Publishes only when `gradle.properties`'
+# `pluginVersion` is new (no matching `vX.Y.Z` git tag exists yet).
+# Day-to-day merges that don't bump the version are no-ops.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write # needed to create the GitHub Release and tag
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      should-release: ${{ steps.check.outputs.should-release }}
+      version: ${{ steps.check.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # need full history for tag lookup
+
+      - name: Read version and check for existing tag
+        id: check
+        run: |
+          VERSION=$(grep -E '^pluginVersion\s*=' gradle.properties | sed -E 's/.*=\s*//' | tr -d '[:space:]')
+          if [ -z "$VERSION" ]; then
+            echo "::error::Could not read pluginVersion from gradle.properties"
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+            echo "Tag v$VERSION already exists — skipping release."
+            echo "should-release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "New version v$VERSION — will release."
+            echo "should-release=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  release:
+    needs: detect
+    if: needs.detect.outputs.should-release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Test
+        run: gradle --no-daemon test
+
+      - name: Build plugin distribution
+        run: gradle --no-daemon buildPlugin
+
+      - name: Publish to JetBrains Marketplace
+        env:
+          PUBLISH_TOKEN: ${{ secrets.JETBRAINS_MARKETPLACE_TOKEN }}
+        run: |
+          if [ -z "$PUBLISH_TOKEN" ]; then
+            echo "::warning::JETBRAINS_MARKETPLACE_TOKEN secret not set; skipping JetBrains Marketplace publish."
+          else
+            gradle --no-daemon publishPlugin
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.detect.outputs.version }}
+          name: v${{ needs.detect.outputs.version }}
+          body: |
+            See [ROADMAP.md](./ROADMAP.md) and the in-plugin `change-notes` for details.
+          files: build/distributions/*.zip
+          generate_release_notes: true
