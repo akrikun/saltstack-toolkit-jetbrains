@@ -1,0 +1,393 @@
+<templateSet group="SaltStack">
+
+    <!-- ========== State modules ========== -->
+
+    <template name="file.managed" value="$ID$:&#10;  file.managed:&#10;    - name: $NAME$&#10;    - source: salt://$SOURCE$&#10;    - user: $USER$&#10;    - group: $GROUP$&#10;    - mode: $MODE$&#10;    - template: jinja"
+              description="Salt: file.managed boilerplate" toReformat="false" toShortenFQNames="false">
+        <variable name="ID" expression="" defaultValue="&quot;state-id&quot;" alwaysStopAt="true"/>
+        <variable name="NAME" expression="" defaultValue="&quot;/path/to/file&quot;" alwaysStopAt="true"/>
+        <variable name="SOURCE" expression="" defaultValue="&quot;path/to/template&quot;" alwaysStopAt="true"/>
+        <variable name="USER" expression="" defaultValue="&quot;root&quot;" alwaysStopAt="true"/>
+        <variable name="GROUP" expression="" defaultValue="&quot;root&quot;" alwaysStopAt="true"/>
+        <variable name="MODE" expression="" defaultValue="&quot;644&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack SLS" value="true"/></context>
+    </template>
+
+    <template name="file.directory" value="$ID$:&#10;  file.directory:&#10;    - name: $NAME$&#10;    - user: $USER$&#10;    - group: $GROUP$&#10;    - mode: $MODE$&#10;    - makedirs: True"
+              description="Salt: file.directory" toReformat="false" toShortenFQNames="false">
+        <variable name="ID" expression="" defaultValue="&quot;dir-id&quot;" alwaysStopAt="true"/>
+        <variable name="NAME" expression="" defaultValue="&quot;/path/to/dir&quot;" alwaysStopAt="true"/>
+        <variable name="USER" expression="" defaultValue="&quot;root&quot;" alwaysStopAt="true"/>
+        <variable name="GROUP" expression="" defaultValue="&quot;root&quot;" alwaysStopAt="true"/>
+        <variable name="MODE" expression="" defaultValue="&quot;755&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack SLS" value="true"/></context>
+    </template>
+
+    <template name="file.absent" value="$ID$:&#10;  file.absent:&#10;    - name: $NAME$"
+              description="Salt: file.absent" toReformat="false" toShortenFQNames="false">
+        <variable name="ID" expression="" defaultValue="&quot;remove-id&quot;" alwaysStopAt="true"/>
+        <variable name="NAME" expression="" defaultValue="&quot;/path/to/file&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack SLS" value="true"/></context>
+    </template>
+
+    <template name="file.symlink" value="$ID$:&#10;  file.symlink:&#10;    - name: $NAME$&#10;    - target: $TARGET$&#10;    - force: True"
+              description="Salt: file.symlink" toReformat="false" toShortenFQNames="false">
+        <variable name="ID" expression="" defaultValue="&quot;symlink-id&quot;" alwaysStopAt="true"/>
+        <variable name="NAME" expression="" defaultValue="&quot;/path/to/link&quot;" alwaysStopAt="true"/>
+        <variable name="TARGET" expression="" defaultValue="&quot;/path/to/target&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack SLS" value="true"/></context>
+    </template>
+
+    <template name="file.recurse" value="$ID$:&#10;  file.recurse:&#10;    - name: $DEST$&#10;    - source: salt://$SRC$&#10;    - user: $USER$&#10;    - group: $GROUP$&#10;    - dir_mode: $DMODE$&#10;    - file_mode: $FMODE$&#10;    - template: jinja"
+              description="Salt: file.recurse" toReformat="false" toShortenFQNames="false">
+        <variable name="ID" expression="" defaultValue="&quot;recurse-id&quot;" alwaysStopAt="true"/>
+        <variable name="DEST" expression="" defaultValue="&quot;/etc/dir&quot;" alwaysStopAt="true"/>
+        <variable name="SRC" expression="" defaultValue="&quot;path/to/files&quot;" alwaysStopAt="true"/>
+        <variable name="USER" expression="" defaultValue="&quot;root&quot;" alwaysStopAt="true"/>
+        <variable name="GROUP" expression="" defaultValue="&quot;root&quot;" alwaysStopAt="true"/>
+        <variable name="DMODE" expression="" defaultValue="&quot;755&quot;" alwaysStopAt="true"/>
+        <variable name="FMODE" expression="" defaultValue="&quot;644&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack SLS" value="true"/></context>
+    </template>
+
+    <template name="file.append" value="$ID$:&#10;  file.append:&#10;    - name: $NAME$&#10;    - text: $TEXT$"
+              description="Salt: file.append" toReformat="false" toShortenFQNames="false">
+        <variable name="ID" expression="" defaultValue="&quot;append-id&quot;" alwaysStopAt="true"/>
+        <variable name="NAME" expression="" defaultValue="&quot;/path/to/file&quot;" alwaysStopAt="true"/>
+        <variable name="TEXT" expression="" defaultValue="&quot;line to append&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack SLS" value="true"/></context>
+    </template>
+
+    <template name="file.replace" value="$ID$:&#10;  file.replace:&#10;    - name: $NAME$&#10;    - pattern: $PAT$&#10;    - repl: $REPL$"
+              description="Salt: file.replace" toReformat="false" toShortenFQNames="false">
+        <variable name="ID" expression="" defaultValue="&quot;replace-id&quot;" alwaysStopAt="true"/>
+        <variable name="NAME" expression="" defaultValue="&quot;/path/to/file&quot;" alwaysStopAt="true"/>
+        <variable name="PAT" expression="" defaultValue="&quot;regex&quot;" alwaysStopAt="true"/>
+        <variable name="REPL" expression="" defaultValue="&quot;replacement&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack SLS" value="true"/></context>
+    </template>
+
+    <template name="pkg.installed" value="$ID$:&#10;  pkg.installed:&#10;    - name: $NAME$"
+              description="Salt: pkg.installed" toReformat="false" toShortenFQNames="false">
+        <variable name="ID" expression="" defaultValue="&quot;state-id&quot;" alwaysStopAt="true"/>
+        <variable name="NAME" expression="" defaultValue="&quot;package&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack SLS" value="true"/></context>
+    </template>
+
+    <template name="pkg.installed.list" value="$ID$:&#10;  pkg.installed:&#10;    - pkgs:&#10;      - $PKG1$&#10;      - $PKG2$"
+              description="Salt: pkg.installed with list" toReformat="false" toShortenFQNames="false">
+        <variable name="ID" expression="" defaultValue="&quot;packages-id&quot;" alwaysStopAt="true"/>
+        <variable name="PKG1" expression="" defaultValue="&quot;pkg1&quot;" alwaysStopAt="true"/>
+        <variable name="PKG2" expression="" defaultValue="&quot;pkg2&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack SLS" value="true"/></context>
+    </template>
+
+    <template name="pkg.latest" value="$ID$:&#10;  pkg.latest:&#10;    - name: $NAME$&#10;    - refresh: True"
+              description="Salt: pkg.latest" toReformat="false" toShortenFQNames="false">
+        <variable name="ID" expression="" defaultValue="&quot;state-id&quot;" alwaysStopAt="true"/>
+        <variable name="NAME" expression="" defaultValue="&quot;package&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack SLS" value="true"/></context>
+    </template>
+
+    <template name="pkg.removed" value="$ID$:&#10;  pkg.removed:&#10;    - name: $NAME$"
+              description="Salt: pkg.removed" toReformat="false" toShortenFQNames="false">
+        <variable name="ID" expression="" defaultValue="&quot;state-id&quot;" alwaysStopAt="true"/>
+        <variable name="NAME" expression="" defaultValue="&quot;package&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack SLS" value="true"/></context>
+    </template>
+
+    <template name="pkgrepo.managed" value="$ID$:&#10;  pkgrepo.managed:&#10;    - humanname: $HUMANNAME$&#10;    - name: $REPO$&#10;    - key_url: $KEY$&#10;    - file: $FILE$"
+              description="Salt: pkgrepo.managed" toReformat="false" toShortenFQNames="false">
+        <variable name="ID" expression="" defaultValue="&quot;repo-id&quot;" alwaysStopAt="true"/>
+        <variable name="HUMANNAME" expression="" defaultValue="&quot;Repo Name&quot;" alwaysStopAt="true"/>
+        <variable name="REPO" expression="" defaultValue="&quot;deb https://example.com/repo stable main&quot;" alwaysStopAt="true"/>
+        <variable name="KEY" expression="" defaultValue="&quot;https://example.com/repo/key.gpg&quot;" alwaysStopAt="true"/>
+        <variable name="FILE" expression="" defaultValue="&quot;/etc/apt/sources.list.d/repo.list&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack SLS" value="true"/></context>
+    </template>
+
+    <template name="service.running" value="$ID$:&#10;  service.running:&#10;    - name: $NAME$&#10;    - enable: True&#10;    - watch:&#10;      - file: $WATCH$"
+              description="Salt: service.running with watch" toReformat="false" toShortenFQNames="false">
+        <variable name="ID" expression="" defaultValue="&quot;svc-id&quot;" alwaysStopAt="true"/>
+        <variable name="NAME" expression="" defaultValue="&quot;service-name&quot;" alwaysStopAt="true"/>
+        <variable name="WATCH" expression="" defaultValue="&quot;config-file-id&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack SLS" value="true"/></context>
+    </template>
+
+    <template name="service.dead" value="$ID$:&#10;  service.dead:&#10;    - name: $NAME$&#10;    - enable: False"
+              description="Salt: service.dead" toReformat="false" toShortenFQNames="false">
+        <variable name="ID" expression="" defaultValue="&quot;svc-id&quot;" alwaysStopAt="true"/>
+        <variable name="NAME" expression="" defaultValue="&quot;service-name&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack SLS" value="true"/></context>
+    </template>
+
+    <template name="cmd.run" value="$ID$:&#10;  cmd.run:&#10;    - name: $CMD$&#10;    - unless: $UNLESS$"
+              description="Salt: cmd.run" toReformat="false" toShortenFQNames="false">
+        <variable name="ID" expression="" defaultValue="&quot;cmd-id&quot;" alwaysStopAt="true"/>
+        <variable name="CMD" expression="" defaultValue="&quot;command&quot;" alwaysStopAt="true"/>
+        <variable name="UNLESS" expression="" defaultValue="&quot;test -f /path&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack SLS" value="true"/></context>
+    </template>
+
+    <template name="cmd.script" value="$ID$:&#10;  cmd.script:&#10;    - source: salt://$SRC$&#10;    - cwd: $CWD$&#10;    - runas: $USER$"
+              description="Salt: cmd.script" toReformat="false" toShortenFQNames="false">
+        <variable name="ID" expression="" defaultValue="&quot;script-id&quot;" alwaysStopAt="true"/>
+        <variable name="SRC" expression="" defaultValue="&quot;path/to/script.sh&quot;" alwaysStopAt="true"/>
+        <variable name="CWD" expression="" defaultValue="&quot;/tmp&quot;" alwaysStopAt="true"/>
+        <variable name="USER" expression="" defaultValue="&quot;root&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack SLS" value="true"/></context>
+    </template>
+
+    <template name="user.present" value="$ID$:&#10;  user.present:&#10;    - name: $NAME$&#10;    - shell: /bin/bash&#10;    - home: /home/$NAME$&#10;    - groups:&#10;      - $GROUP$"
+              description="Salt: user.present" toReformat="false" toShortenFQNames="false">
+        <variable name="ID" expression="" defaultValue="&quot;user-id&quot;" alwaysStopAt="true"/>
+        <variable name="NAME" expression="" defaultValue="&quot;username&quot;" alwaysStopAt="true"/>
+        <variable name="GROUP" expression="" defaultValue="&quot;sudo&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack SLS" value="true"/></context>
+    </template>
+
+    <template name="user.absent" value="$ID$:&#10;  user.absent:&#10;    - name: $NAME$&#10;    - purge: True"
+              description="Salt: user.absent" toReformat="false" toShortenFQNames="false">
+        <variable name="ID" expression="" defaultValue="&quot;user-absent-id&quot;" alwaysStopAt="true"/>
+        <variable name="NAME" expression="" defaultValue="&quot;username&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack SLS" value="true"/></context>
+    </template>
+
+    <template name="group.present" value="$ID$:&#10;  group.present:&#10;    - name: $NAME$&#10;    - gid: $GID$"
+              description="Salt: group.present" toReformat="false" toShortenFQNames="false">
+        <variable name="ID" expression="" defaultValue="&quot;group-id&quot;" alwaysStopAt="true"/>
+        <variable name="NAME" expression="" defaultValue="&quot;groupname&quot;" alwaysStopAt="true"/>
+        <variable name="GID" expression="" defaultValue="&quot;1000&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack SLS" value="true"/></context>
+    </template>
+
+    <template name="cron.present" value="$ID$:&#10;  cron.present:&#10;    - name: $CMD$&#10;    - user: $USER$&#10;    - minute: $MIN$&#10;    - hour: $HOUR$"
+              description="Salt: cron.present" toReformat="false" toShortenFQNames="false">
+        <variable name="ID" expression="" defaultValue="&quot;cron-id&quot;" alwaysStopAt="true"/>
+        <variable name="CMD" expression="" defaultValue="&quot;/path/to/script&quot;" alwaysStopAt="true"/>
+        <variable name="USER" expression="" defaultValue="&quot;root&quot;" alwaysStopAt="true"/>
+        <variable name="MIN" expression="" defaultValue="&quot;0&quot;" alwaysStopAt="true"/>
+        <variable name="HOUR" expression="" defaultValue="&quot;*&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack SLS" value="true"/></context>
+    </template>
+
+    <template name="git.latest" value="$ID$:&#10;  git.latest:&#10;    - name: $REPO$&#10;    - target: $TARGET$&#10;    - rev: $REV$&#10;    - force_reset: True"
+              description="Salt: git.latest" toReformat="false" toShortenFQNames="false">
+        <variable name="ID" expression="" defaultValue="&quot;git-id&quot;" alwaysStopAt="true"/>
+        <variable name="REPO" expression="" defaultValue="&quot;https://github.com/user/repo.git&quot;" alwaysStopAt="true"/>
+        <variable name="TARGET" expression="" defaultValue="&quot;/srv/repo&quot;" alwaysStopAt="true"/>
+        <variable name="REV" expression="" defaultValue="&quot;main&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack SLS" value="true"/></context>
+    </template>
+
+    <template name="archive.extracted" value="$ID$:&#10;  archive.extracted:&#10;    - name: $DEST$&#10;    - source: $SRC$&#10;    - source_hash: $HASH$"
+              description="Salt: archive.extracted" toReformat="false" toShortenFQNames="false">
+        <variable name="ID" expression="" defaultValue="&quot;extract-id&quot;" alwaysStopAt="true"/>
+        <variable name="DEST" expression="" defaultValue="&quot;/srv/dest&quot;" alwaysStopAt="true"/>
+        <variable name="SRC" expression="" defaultValue="&quot;https://example.com/archive.tar.gz&quot;" alwaysStopAt="true"/>
+        <variable name="HASH" expression="" defaultValue="&quot;sha256=abc...&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack SLS" value="true"/></context>
+    </template>
+
+    <template name="docker_container.running" value="$ID$:&#10;  docker_container.running:&#10;    - name: $NAME$&#10;    - image: $IMAGE$&#10;    - port_bindings:&#10;      - $PORT$"
+              description="Salt: docker_container.running" toReformat="false" toShortenFQNames="false">
+        <variable name="ID" expression="" defaultValue="&quot;container-id&quot;" alwaysStopAt="true"/>
+        <variable name="NAME" expression="" defaultValue="&quot;name&quot;" alwaysStopAt="true"/>
+        <variable name="IMAGE" expression="" defaultValue="&quot;image:tag&quot;" alwaysStopAt="true"/>
+        <variable name="PORT" expression="" defaultValue="&quot;8080:80&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack SLS" value="true"/></context>
+    </template>
+
+    <template name="mount.mounted" value="$ID$:&#10;  mount.mounted:&#10;    - name: $MNT$&#10;    - device: $DEV$&#10;    - fstype: $FS$&#10;    - mkmnt: True"
+              description="Salt: mount.mounted" toReformat="false" toShortenFQNames="false">
+        <variable name="ID" expression="" defaultValue="&quot;mount-id&quot;" alwaysStopAt="true"/>
+        <variable name="MNT" expression="" defaultValue="&quot;/mnt/point&quot;" alwaysStopAt="true"/>
+        <variable name="DEV" expression="" defaultValue="&quot;/dev/sda1&quot;" alwaysStopAt="true"/>
+        <variable name="FS" expression="" defaultValue="&quot;ext4&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack SLS" value="true"/></context>
+    </template>
+
+    <template name="test.nop" value="$ID$:&#10;  test.nop"
+              description="Salt: test.nop" toReformat="false" toShortenFQNames="false">
+        <variable name="ID" expression="" defaultValue="&quot;noop-id&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack SLS" value="true"/></context>
+    </template>
+
+    <template name="module.run" value="$ID$:&#10;  module.run:&#10;    - $FN$:&#10;        - $ARG$"
+              description="Salt: module.run" toReformat="false" toShortenFQNames="false">
+        <variable name="ID" expression="" defaultValue="&quot;run-id&quot;" alwaysStopAt="true"/>
+        <variable name="FN" expression="" defaultValue="&quot;mod.func&quot;" alwaysStopAt="true"/>
+        <variable name="ARG" expression="" defaultValue="&quot;arg&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack SLS" value="true"/></context>
+    </template>
+
+    <!-- ========== Boilerplates ========== -->
+
+    <template name="sls-boilerplate" value="{%- from &quot;$FORMULA$/map.jinja&quot; import $VAR$ with context %}&#10;&#10;include:&#10;  - .common&#10;&#10;$ID$:&#10;  $END$"
+              description="Salt: SLS boilerplate" toReformat="false" toShortenFQNames="false">
+        <variable name="FORMULA" expression="" defaultValue="&quot;formula&quot;" alwaysStopAt="true"/>
+        <variable name="VAR" expression="" defaultValue="&quot;var&quot;" alwaysStopAt="true"/>
+        <variable name="ID" expression="" defaultValue="&quot;state-id&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack SLS" value="true"/></context>
+    </template>
+
+    <template name="sls-full" value="# {{ sls }} state file&#10;{%- from &quot;$FORMULA$/map.jinja&quot; import $FORMULA$ with context %}&#10;&#10;include:&#10;  - .common&#10;&#10;{{ sls }}-package:&#10;  pkg.installed:&#10;    - name: {{ $FORMULA$.pkg_name }}&#10;&#10;{{ sls }}-config:&#10;  file.managed:&#10;    - name: {{ $FORMULA$.config_path }}&#10;    - source: salt://$FORMULA$/files/config.j2&#10;    - template: jinja&#10;    - require:&#10;      - pkg: {{ sls }}-package&#10;&#10;{{ sls }}-service:&#10;  service.running:&#10;    - name: {{ $FORMULA$.service }}&#10;    - enable: True&#10;    - watch:&#10;      - file: {{ sls }}-config"
+              description="Salt: full SLS template (pkg+file+service)" toReformat="false" toShortenFQNames="false">
+        <variable name="FORMULA" expression="" defaultValue="&quot;formula&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack SLS" value="true"/></context>
+    </template>
+
+    <!-- ========== Jinja constructs ========== -->
+
+    <template name="if" value="{%- if $COND$ %}&#10;  $END$&#10;{%- endif %}"
+              description="Jinja: if block" toReformat="false" toShortenFQNames="false">
+        <variable name="COND" expression="" defaultValue="&quot;condition&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack Jinja" value="true"/></context>
+    </template>
+
+    <template name="ifelse" value="{%- if $COND$ %}&#10;  $TRUE$&#10;{%- else %}&#10;  $FALSE$&#10;{%- endif %}"
+              description="Jinja: if/else" toReformat="false" toShortenFQNames="false">
+        <variable name="COND" expression="" defaultValue="&quot;condition&quot;" alwaysStopAt="true"/>
+        <variable name="TRUE" expression="" defaultValue="&quot;true_branch&quot;" alwaysStopAt="true"/>
+        <variable name="FALSE" expression="" defaultValue="&quot;false_branch&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack Jinja" value="true"/></context>
+    </template>
+
+    <template name="ifelif" value="{%- if $C1$ %}&#10;  $A$&#10;{%- elif $C2$ %}&#10;  $B$&#10;{%- else %}&#10;  $C$&#10;{%- endif %}"
+              description="Jinja: if/elif/else" toReformat="false" toShortenFQNames="false">
+        <variable name="C1" expression="" defaultValue="&quot;cond1&quot;" alwaysStopAt="true"/>
+        <variable name="C2" expression="" defaultValue="&quot;cond2&quot;" alwaysStopAt="true"/>
+        <variable name="A" expression="" defaultValue="&quot;branch_a&quot;" alwaysStopAt="true"/>
+        <variable name="B" expression="" defaultValue="&quot;branch_b&quot;" alwaysStopAt="true"/>
+        <variable name="C" expression="" defaultValue="&quot;branch_c&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack Jinja" value="true"/></context>
+    </template>
+
+    <template name="for" value="{%- for $VAR$ in $ITER$ %}&#10;  $END$&#10;{%- endfor %}"
+              description="Jinja: for loop" toReformat="false" toShortenFQNames="false">
+        <variable name="VAR" expression="" defaultValue="&quot;item&quot;" alwaysStopAt="true"/>
+        <variable name="ITER" expression="" defaultValue="&quot;items&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack Jinja" value="true"/></context>
+    </template>
+
+    <template name="set" value="{%- set $VAR$ = $VAL$ %}"
+              description="Jinja: set variable" toReformat="false" toShortenFQNames="false">
+        <variable name="VAR" expression="" defaultValue="&quot;var&quot;" alwaysStopAt="true"/>
+        <variable name="VAL" expression="" defaultValue="&quot;value&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack Jinja" value="true"/></context>
+    </template>
+
+    <template name="from" value="{%- from &quot;$PATH$&quot; import $NAME$ with context %}"
+              description="Jinja: from import" toReformat="false" toShortenFQNames="false">
+        <variable name="PATH" expression="" defaultValue="&quot;formula/map.jinja&quot;" alwaysStopAt="true"/>
+        <variable name="NAME" expression="" defaultValue="&quot;name&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack Jinja" value="true"/></context>
+    </template>
+
+    <template name="import" value="{%- import &quot;$PATH$&quot; as $ALIAS$ %}"
+              description="Jinja: import as" toReformat="false" toShortenFQNames="false">
+        <variable name="PATH" expression="" defaultValue="&quot;formula/map.jinja&quot;" alwaysStopAt="true"/>
+        <variable name="ALIAS" expression="" defaultValue="&quot;alias&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack Jinja" value="true"/></context>
+    </template>
+
+    <template name="import_yaml" value="{%- import_yaml &quot;$PATH$&quot; as $ALIAS$ %}"
+              description="Jinja: import_yaml" toReformat="false" toShortenFQNames="false">
+        <variable name="PATH" expression="" defaultValue="&quot;defaults.yaml&quot;" alwaysStopAt="true"/>
+        <variable name="ALIAS" expression="" defaultValue="&quot;defaults&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack Jinja" value="true"/></context>
+    </template>
+
+    <template name="include" value="{%- include &quot;$PATH$&quot; %}"
+              description="Jinja: include" toReformat="false" toShortenFQNames="false">
+        <variable name="PATH" expression="" defaultValue="&quot;path/to/file&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack Jinja" value="true"/></context>
+    </template>
+
+    <template name="macro" value="{%- macro $NAME$($ARGS$) %}&#10;  $END$&#10;{%- endmacro %}"
+              description="Jinja: macro" toReformat="false" toShortenFQNames="false">
+        <variable name="NAME" expression="" defaultValue="&quot;macro_name&quot;" alwaysStopAt="true"/>
+        <variable name="ARGS" expression="" defaultValue="&quot;args&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack Jinja" value="true"/></context>
+    </template>
+
+    <template name="block" value="{%- block $NAME$ %}&#10;  $END$&#10;{%- endblock %}"
+              description="Jinja: block" toReformat="false" toShortenFQNames="false">
+        <variable name="NAME" expression="" defaultValue="&quot;block_name&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack Jinja" value="true"/></context>
+    </template>
+
+    <template name="raw" value="{%- raw %}&#10;  $END$&#10;{%- endraw %}"
+              description="Jinja: raw block" toReformat="false" toShortenFQNames="false">
+        <context><option name="SaltStack Jinja" value="true"/></context>
+    </template>
+
+    <template name="comment" value="{# $TEXT$ #}"
+              description="Jinja: comment" toReformat="false" toShortenFQNames="false">
+        <variable name="TEXT" expression="" defaultValue="&quot;comment&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack Jinja" value="true"/></context>
+    </template>
+
+    <!-- ========== Salt patterns ========== -->
+
+    <template name="map.jinja" value="{%- set $NAME$_main = pillar.$NAME$ | default({}) %}&#10;{%- set $NAME$ = {&#10;  '$KEY$': $NAME$_main.$KEY$ | default('$DEFAULT$')&#10;} %}"
+              description="Salt: map.jinja boilerplate" toReformat="false" toShortenFQNames="false">
+        <variable name="NAME" expression="" defaultValue="&quot;formula&quot;" alwaysStopAt="true"/>
+        <variable name="KEY" expression="" defaultValue="&quot;key&quot;" alwaysStopAt="true"/>
+        <variable name="DEFAULT" expression="" defaultValue="&quot;value&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack Jinja" value="true"/></context>
+    </template>
+
+    <template name="sdb.get" value="salt['sdb.get']('sdb://$PROFILE$/$PATH$')"
+              description="Salt: sdb.get" toReformat="false" toShortenFQNames="false">
+        <variable name="PROFILE" expression="" defaultValue="&quot;vlt&quot;" alwaysStopAt="true"/>
+        <variable name="PATH" expression="" defaultValue="&quot;path/to/key&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack Jinja" value="true"/></context>
+    </template>
+
+    <template name="sdb.get_or_set_hash" value="salt['sdb.get_or_set_hash'](uri='sdb://$PROFILE$/$PATH$', length=$LEN$)"
+              description="Salt: sdb.get_or_set_hash (auto-generate secret)" toReformat="false" toShortenFQNames="false">
+        <variable name="PROFILE" expression="" defaultValue="&quot;vlt&quot;" alwaysStopAt="true"/>
+        <variable name="PATH" expression="" defaultValue="&quot;path/to/key&quot;" alwaysStopAt="true"/>
+        <variable name="LEN" expression="" defaultValue="&quot;32&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack Jinja" value="true"/></context>
+    </template>
+
+    <template name="defaults.merge" value="salt['defaults.merge']($BASE$, $OVERRIDE$)"
+              description="Salt: defaults.merge" toReformat="false" toShortenFQNames="false">
+        <variable name="BASE" expression="" defaultValue="&quot;base&quot;" alwaysStopAt="true"/>
+        <variable name="OVERRIDE" expression="" defaultValue="&quot;override&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack Jinja" value="true"/></context>
+    </template>
+
+    <template name="grains.filter_by" value="salt['grains.filter_by']({&#10;  '$KEY1$': $VAL1$,&#10;  '$KEY2$': $VAL2$,&#10;}, grain='$GRAIN$')"
+              description="Salt: grains.filter_by" toReformat="false" toShortenFQNames="false">
+        <variable name="KEY1" expression="" defaultValue="&quot;Debian&quot;" alwaysStopAt="true"/>
+        <variable name="VAL1" expression="" defaultValue="&quot;value1&quot;" alwaysStopAt="true"/>
+        <variable name="KEY2" expression="" defaultValue="&quot;RedHat&quot;" alwaysStopAt="true"/>
+        <variable name="VAL2" expression="" defaultValue="&quot;value2&quot;" alwaysStopAt="true"/>
+        <variable name="GRAIN" expression="" defaultValue="&quot;os_family&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack Jinja" value="true"/></context>
+    </template>
+
+    <template name="fast_yaml.hosts" value="salt.fast_yaml.hosts('$KEY$')"
+              description="Salt: fast_yaml.hosts (custom)" toReformat="false" toShortenFQNames="false">
+        <variable name="KEY" expression="" defaultValue="&quot;common_meta&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack Jinja" value="true"/></context>
+    </template>
+
+    <template name="saltutil.runner" value="salt.saltutil.runner('$RUNNER$', $ARGS$)"
+              description="Salt: saltutil.runner" toReformat="false" toShortenFQNames="false">
+        <variable name="RUNNER" expression="" defaultValue="&quot;runner.function&quot;" alwaysStopAt="true"/>
+        <variable name="ARGS" expression="" defaultValue="&quot;arg=value&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack Jinja" value="true"/></context>
+    </template>
+
+    <template name="pillar.get" value="salt['pillar.get']('$KEY$', '$DEFAULT$')"
+              description="Salt: pillar.get with default" toReformat="false" toShortenFQNames="false">
+        <variable name="KEY" expression="" defaultValue="&quot;key:subkey&quot;" alwaysStopAt="true"/>
+        <variable name="DEFAULT" expression="" defaultValue="&quot;default&quot;" alwaysStopAt="true"/>
+        <context><option name="SaltStack Jinja" value="true"/></context>
+    </template>
+
+</templateSet>

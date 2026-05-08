@@ -1,0 +1,225 @@
+<idea-plugin>
+    <id>com.akrikun.saltstack</id>
+    <name>SaltStack Toolkit</name>
+    <vendor email="akrikun@akds.pl" url="https://github.com/akrikun">Andrei Krikun</vendor>
+
+    <description><![CDATA[
+        <h2>SaltStack Toolkit</h2>
+        <p>Comprehensive SaltStack support for IntelliJ-based IDEs: syntax highlighting, inspections,
+        formatting, navigation, completion and snippets for SLS and Jinja2 files.</p>
+
+        <p>Compatible with IntelliJ IDEA, PyCharm, GoLand, WebStorm, RubyMine, RustRover, CLion and other
+        IntelliJ Platform IDEs (2024.1+).</p>
+
+        <h3>Features</h3>
+
+        <h4>Syntax highlighting</h4>
+        <ul>
+            <li>SLS files (<code>.sls</code>) — YAML structure with embedded Jinja</li>
+            <li>Jinja2 files (<code>.jinja</code>, <code>.j2</code>, <code>.jinja2</code>)</li>
+            <li>Configurable colors via <i>Settings → Editor → Color Scheme → SaltStack Toolkit</i></li>
+        </ul>
+
+        <h4>Inspections (real-time linter)</h4>
+        <ul>
+            <li>Duplicate top-level keys (state IDs in state files, pillar keys in pillar files)</li>
+            <li>Unclosed Jinja blocks (<code>{% if %}</code> without <code>{% endif %}</code>, etc.)</li>
+            <li>Tab characters (Salt/YAML requires spaces)</li>
+            <li>Trailing whitespace</li>
+            <li>Empty state blocks (state ID without module call)</li>
+            <li>Requisite references to non-existent state IDs in the same file</li>
+        </ul>
+
+        <h4>Formatting</h4>
+        <ul>
+            <li><b>Auto-format on save</b> (toggle in settings)</li>
+            <li><b>Manual format</b> via <code>Shift+Alt+F</code></li>
+            <li>Enforces <code>{%-</code> on opening Jinja tags (configurable)</li>
+            <li>Preserves closing <code>-%}</code> for explicit whitespace control</li>
+            <li>Tag spacing normalization: <code>{%if x%}</code> → <code>{%- if x %}</code>, <code>{{var}}</code> → <code>{{ var }}</code></li>
+            <li>Comments <code>{# ... #}</code> content is left untouched</li>
+            <li>Tabs to spaces, trailing whitespace removal</li>
+            <li>Collapses multiple blank lines, ensures final newline</li>
+        </ul>
+
+        <h4>Navigation</h4>
+        <ul>
+            <li><b>Structure View</b> (<code>Cmd+7</code>) — outline of state IDs, includes, Jinja imports/variables</li>
+            <li><b>Go-to-Definition</b> (<code>Cmd+Click</code>):
+                <ul>
+                    <li>Jinja imports: <code>{% from "formula/map.jinja" import ... %}</code></li>
+                    <li>Jinja includes: <code>{% include "..." %}</code></li>
+                    <li><code>salt://</code> source references</li>
+                    <li>SLS includes: <code>- .substate</code>, <code>- formula.substate</code></li>
+                    <li>Pillar includes</li>
+                    <li>Requisite references inside the current file</li>
+                    <li><b>Reverse navigation:</b> click on a top-level pillar key → find all usages
+                        (<code>pillar.KEY</code>, <code>pillar['KEY']</code>, <code>pillar.get('KEY')</code>) in state files</li>
+                </ul>
+            </li>
+            <li><b>Hover documentation</b> for 50+ state modules, all requisites, Salt builtins,
+                execution modules (<code>sdb.get</code>, <code>defaults.merge</code>, <code>fast_yaml.hosts</code>, etc.)</li>
+        </ul>
+
+        <h4>Auto-completion</h4>
+        <ul>
+            <li>50+ state modules (<code>file.managed</code>, <code>service.running</code>, etc.)</li>
+            <li>Module parameters (context-aware — suggests parameters of the parent module)</li>
+            <li>All requisites (<code>require</code>, <code>watch</code>, <code>onchanges</code>, etc.)</li>
+            <li>Salt execution modules inside <code>salt[...]</code> and <code>salt.</code></li>
+        </ul>
+
+        <h4>Live Templates (snippets)</h4>
+        <p>40+ snippets for common Salt patterns:</p>
+        <ul>
+            <li>State modules: <code>file.managed</code>, <code>pkg.installed</code>, <code>service.running</code>,
+                <code>cmd.run</code>, <code>user.present</code>, <code>cron.present</code>, <code>git.latest</code>,
+                <code>docker_container.running</code>, <code>archive.extracted</code>, etc.</li>
+            <li>Jinja constructs: <code>if</code>, <code>ifelse</code>, <code>for</code>, <code>set</code>,
+                <code>from</code>, <code>import</code>, <code>include</code>, <code>macro</code>, <code>block</code></li>
+            <li>Salt patterns: <code>map.jinja</code>, <code>sdb.get</code>, <code>defaults.merge</code>,
+                <code>grains.filter_by</code>, <code>saltutil.runner</code>, <code>pillar.get</code></li>
+            <li>Boilerplates: <code>sls-boilerplate</code>, <code>sls-full</code></li>
+        </ul>
+
+        <h4>Configuration</h4>
+        <p><i>Settings → Tools → SaltStack Toolkit</i>:</p>
+        <ul>
+            <li><b>State roots / Pillar roots</b> — comma-separated paths (relative or absolute) for navigation resolution</li>
+            <li>Toggle individual lint checks</li>
+            <li>Toggle auto-format on save</li>
+            <li>Toggle <code>{%-</code> dash enforcement</li>
+        </ul>
+
+        <h3>Source code</h3>
+        <p><a href="https://github.com/akrikun/saltstack-toolkit-jetbrains">github.com/akrikun/saltstack-toolkit-jetbrains</a></p>
+    ]]></description>
+
+    <change-notes><![CDATA[
+        <h3>1.4.0</h3>
+        <ul>
+            <li>Initial release for JetBrains IDEs</li>
+            <li>Syntax highlighting for SLS and Jinja2 files</li>
+            <li>Inspections: duplicate top-level keys (state IDs and pillar keys), unclosed Jinja blocks,
+                tab characters, trailing whitespace, empty state blocks, requisite references</li>
+            <li>Formatting: auto on save and manual (Shift+Alt+F), Jinja tag normalization,
+                <code>{%-</code> dash enforcement</li>
+            <li>Navigation: Structure View, Go-to-Definition for Jinja imports/includes,
+                <code>salt://</code> sources, SLS includes, pillar includes, requisite references</li>
+            <li>Reverse navigation: Cmd+Click on a pillar key finds all usages in state files</li>
+            <li>Auto-completion: 50+ state modules, parameters, requisites, execution modules</li>
+            <li>Hover documentation for state modules, requisites, builtins, exec modules</li>
+            <li>40+ live templates (snippets) for common Salt patterns</li>
+            <li>Settings panel with configurable State/Pillar roots and lint toggles</li>
+        </ul>
+    ]]></change-notes>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Languages -->
+        <fileType
+            name="SLS"
+            implementationClass="com.akrikun.saltstack.SlsFileType"
+            fieldName="INSTANCE"
+            language="SLS"
+            extensions="sls"/>
+        <fileType
+            name="Jinja"
+            implementationClass="com.akrikun.saltstack.JinjaFileType"
+            fieldName="INSTANCE"
+            language="Jinja"
+            extensions="jinja;j2;jinja2"/>
+
+        <lang.parserDefinition
+            language="SLS"
+            implementationClass="com.akrikun.saltstack.SlsParserDefinition"/>
+        <lang.parserDefinition
+            language="Jinja"
+            implementationClass="com.akrikun.saltstack.JinjaParserDefinition"/>
+
+        <!-- Syntax highlighting -->
+        <lang.syntaxHighlighterFactory
+            language="SLS"
+            implementationClass="com.akrikun.saltstack.highlighting.SaltSyntaxHighlighterFactory"/>
+        <lang.syntaxHighlighterFactory
+            language="Jinja"
+            implementationClass="com.akrikun.saltstack.highlighting.SaltSyntaxHighlighterFactory"/>
+
+        <colorSettingsPage
+            implementation="com.akrikun.saltstack.highlighting.SaltColorSettingsPage"/>
+
+        <!-- Inspections via ExternalAnnotator -->
+        <externalAnnotator
+            language="SLS"
+            implementationClass="com.akrikun.saltstack.inspections.SaltAnnotator"/>
+        <externalAnnotator
+            language="Jinja"
+            implementationClass="com.akrikun.saltstack.inspections.SaltAnnotator"/>
+
+        <!-- Completion -->
+        <completion.contributor
+            language="SLS"
+            implementationClass="com.akrikun.saltstack.completion.SaltCompletionContributor"/>
+
+        <!-- Documentation -->
+        <lang.documentationProvider
+            language="SLS"
+            implementationClass="com.akrikun.saltstack.documentation.SaltDocumentationProvider"/>
+        <lang.documentationProvider
+            language="Jinja"
+            implementationClass="com.akrikun.saltstack.documentation.SaltDocumentationProvider"/>
+
+        <!-- Live Templates -->
+        <defaultLiveTemplates file="liveTemplates/Salt.xml"/>
+        <liveTemplateContext
+            contextId="SALT_SLS"
+            implementation="com.akrikun.saltstack.SlsTemplateContextType"/>
+        <liveTemplateContext
+            contextId="SALT_JINJA"
+            implementation="com.akrikun.saltstack.JinjaTemplateContextType"/>
+
+        <!-- Settings -->
+        <applicationConfigurable
+            parentId="tools"
+            instance="com.akrikun.saltstack.SaltSettingsConfigurable"
+            id="com.akrikun.saltstack.settings"
+            displayName="SaltStack Toolkit"/>
+
+        <applicationService
+            serviceImplementation="com.akrikun.saltstack.SaltSettings"/>
+
+        <!-- Format-on-save -->
+        <postFormatProcessor
+            implementation="com.akrikun.saltstack.formatting.SaltPostFormatProcessor"/>
+
+        <!-- Structure View (Outline) -->
+        <lang.psiStructureViewFactory
+            language="SLS"
+            implementationClass="com.akrikun.saltstack.structure.SaltStructureViewFactory"/>
+        <lang.psiStructureViewFactory
+            language="Jinja"
+            implementationClass="com.akrikun.saltstack.structure.SaltStructureViewFactory"/>
+
+        <!-- Go-to-Definition -->
+        <gotoDeclarationHandler
+            implementation="com.akrikun.saltstack.navigation.SaltGotoDeclarationHandler"/>
+    </extensions>
+
+    <actions>
+        <action
+            id="SaltStack.FormatJinja"
+            class="com.akrikun.saltstack.formatting.FormatSaltAction"
+            text="Format Salt/Jinja File"
+            description="Apply Salt-specific formatting (Jinja tag normalization, etc.)">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="shift alt F"/>
+        </action>
+    </actions>
+
+    <applicationListeners>
+        <listener
+            class="com.akrikun.saltstack.formatting.SaltSaveListener"
+            topic="com.intellij.openapi.fileEditor.FileDocumentManagerListener"/>
+    </applicationListeners>
+</idea-plugin>
