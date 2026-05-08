@@ -28,6 +28,37 @@ class SaltCompletionContributor : CompletionContributor() {
                     val lineNum = doc.getLineNumber(offset)
                     val lineStart = doc.getLineStartOffset(lineNum)
                     val currentLine = doc.getText(TextRange(lineStart, offset))
+                    val isSls = parameters.originalFile.language == com.akrikun.saltstack.SlsLanguage
+
+                    // === Jinja-context completions (work in any supported language) ===
+
+                    // Inside salt['...'] or salt. — suggest exec modules
+                    if (currentLine.contains("salt[") || currentLine.contains("salt.")) {
+                        SALT_EXEC_MODULES.forEach { m ->
+                            result.addElement(
+                                LookupElementBuilder.create(m)
+                                    .withIcon(SaltIcons.SLS_FILE)
+                                    .withTypeText("execution module"),
+                            )
+                        }
+                        return
+                    }
+
+                    // After "pillar.", "grains.", "sdb.", "defaults." — suggest known funcs
+                    val dotMatch = Regex("(pillar|grains|sdb|defaults)\\.\\w*$").find(currentLine)
+                    if (dotMatch != null) {
+                        DOT_METHODS[dotMatch.groupValues[1]]?.forEach { (name, detail) ->
+                            result.addElement(
+                                LookupElementBuilder.create(name)
+                                    .withIcon(SaltIcons.SLS_FILE)
+                                    .withTypeText(detail),
+                            )
+                        }
+                        return
+                    }
+
+                    // === SLS-only completions below ===
+                    if (!isSls) return
 
                     // If we're inside an indented "- " entry, suggest module params
                     val parentModule = findParentStateModule(doc, lineNum)
@@ -44,18 +75,6 @@ class SaltCompletionContributor : CompletionContributor() {
                                 LookupElementBuilder.create(r)
                                     .withIcon(SaltIcons.SLS_FILE)
                                     .withTypeText("requisite"),
-                            )
-                        }
-                        return
-                    }
-
-                    // If we're inside salt['...'] or salt. — suggest exec modules
-                    if (currentLine.contains("salt[") || currentLine.contains("salt.")) {
-                        SALT_EXEC_MODULES.forEach { m ->
-                            result.addElement(
-                                LookupElementBuilder.create(m)
-                                    .withIcon(SaltIcons.SLS_FILE)
-                                    .withTypeText("execution module"),
                             )
                         }
                         return
@@ -95,6 +114,30 @@ class SaltCompletionContributor : CompletionContributor() {
     }
 
     companion object {
+        // Methods suggested after `pillar.`, `grains.`, `sdb.`, `defaults.` in any context.
+        val DOT_METHODS: Map<String, List<Pair<String, String>>> = mapOf(
+            "pillar" to listOf(
+                "get" to "Get a pillar value with optional default",
+                "items" to "Get all pillar items",
+                "keys" to "List pillar keys",
+                "raw" to "Get raw pillar dict",
+            ),
+            "grains" to listOf(
+                "get" to "Get a grains value with default",
+                "filter_by" to "Pick a value based on grain match",
+                "items" to "Get all grains",
+            ),
+            "sdb" to listOf(
+                "get" to "Retrieve value from SDB backend",
+                "set" to "Set value in SDB backend",
+                "get_or_set_hash" to "Auto-generate and store secret",
+            ),
+            "defaults" to listOf(
+                "merge" to "Deep-merge two dicts (used in map.jinja)",
+                "get" to "Get a defaults value",
+            ),
+        )
+
         val STATE_MODULES = mapOf(
             "file.managed" to "Manage a file",
             "file.directory" to "Manage a directory",

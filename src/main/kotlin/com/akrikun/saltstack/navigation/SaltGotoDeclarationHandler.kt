@@ -90,11 +90,8 @@ class SaltGotoDeclarationHandler : GotoDeclarationHandler {
     }
 
     private fun resolveSaltSource(line: String, col: Int, project: Project, currentFile: com.intellij.psi.PsiFile): PsiElement? {
-        // - source: salt://path/to/file
-        val m = Regex("salt://([^\\s'\"]+)").find(line) ?: return null
-        val pathRange = m.groups[1]?.range ?: return null
-        if (col !in m.range.first..m.range.last + 1) return null
-        return findInRoots(m.groupValues[1], project, currentFile, "salt") { _, _ -> true }
+        val target = extractSaltUri(line, col) ?: return null
+        return findInRoots(target, project, currentFile, "salt") { _, _ -> true }
     }
 
     private fun resolveSlsInclude(line: String, col: Int, project: Project, currentFile: com.intellij.psi.PsiFile): PsiElement? {
