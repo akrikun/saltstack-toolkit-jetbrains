@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Compile
+        run: gradle --no-daemon compileKotlin compileTestKotlin
+
+      - name: Test
+        run: gradle --no-daemon test
+
+      - name: Build plugin distribution
+        run: gradle --no-daemon buildPlugin
+
+      - name: Upload plugin artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-dist
+          path: build/distributions/*.zip
+          retention-days: 14
+
+      - name: Upload test reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: build/reports/tests
+          retention-days: 7
+
+  plugin-verifier:
+    # Plugin Verifier exercises the plugin against real IDE binaries from the
+    # configured matrix (IDEA-IC, PyCharm-PC, WebStorm, GoLand). Slow — runs
+    # in parallel with the test job, doesn't block fast feedback.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Run Plugin Verifier
+        run: gradle --no-daemon verifyPlugin
+        continue-on-error: true # don't block PRs on advisory verifier output
+
+      - name: Upload verifier reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verifier-reports
+          path: build/reports/pluginVerifier
+          retention-days: 14

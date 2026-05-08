@@ -20,7 +20,10 @@ class SaltSettings : PersistentStateComponent<SaltSettings.State> {
         var checkEmptyStates: Boolean = true,
         var checkRequisiteRefs: Boolean = true,
         var formatOnSave: Boolean = true,
-        var enforceDashTags: Boolean = true,
+        // Default is now `false`: enforcing the `{%- ... %}` dash style changes
+        // Jinja runtime whitespace semantics. Users who want it can opt in
+        // (Settings → Tools → SaltStack Toolkit).
+        var enforceDashTags: Boolean = false,
         var stateRoots: MutableList<String> = mutableListOf("salt", "srv/salt"),
         var pillarRoots: MutableList<String> = mutableListOf("pillar", "srv/pillar"),
     )

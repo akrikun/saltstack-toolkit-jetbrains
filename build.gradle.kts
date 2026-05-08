@@ -37,6 +37,12 @@ intellijPlatform {
         }
     }
 
+    // Plugin Verifier configuration. Run via `gradle verifyPlugin`.
+    // Without an explicit `ides` block the verifier picks the IDE the plugin
+    // is built against (IDEA-IC at the platformVersion). Add other IDEs via
+    // CLI args in CI if a wider matrix is needed:
+    //   gradle verifyPlugin -P verifierIdes="IC-2024.1,PY-2024.1,WS-2024.1"
+
     signing {
         certificateChain = providers.environmentVariable("CERTIFICATE_CHAIN")
         privateKey = providers.environmentVariable("PRIVATE_KEY")

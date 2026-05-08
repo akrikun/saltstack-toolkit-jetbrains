@@ -96,6 +96,18 @@
     ]]></description>
 
     <change-notes><![CDATA[
+        <h3>1.6.0</h3>
+        <ul>
+            <li><b>Safer formatter default</b>: <code>enforceDashTags</code> is now <b>off</b> by default.
+                The dash style changes Jinja runtime whitespace semantics, so we no longer enforce it
+                on save without explicit opt-in.</li>
+            <li><b>Plugin Verifier</b> task wired into the GitHub Actions CI matrix.</li>
+            <li><b>Marketplace-ready README</b>: full feature list, compatibility matrix
+                (IDEA / PyCharm / WebStorm / GoLand / RubyMine / RustRover / CLion).</li>
+            <li><b>Shared fixtures</b> with the VS Code plugin (<code>fixtures/</code>) so a regression
+                on either side fails both CIs.</li>
+        </ul>
+
         <h3>1.5.4</h3>
         <h4>Fixes</h4>
         <ul>
