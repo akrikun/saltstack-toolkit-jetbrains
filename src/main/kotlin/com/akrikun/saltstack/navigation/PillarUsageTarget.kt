@@ -34,18 +34,24 @@ class PillarUsageTarget(
     override fun getPresentation(): ItemPresentation = object : ItemPresentation {
         override fun getPresentableText(): String {
             val doc = file.viewProvider.document ?: return matchedText
-            val line = doc.getLineNumber(offset) + 1
-            return "$matchedText  (line $line)"
+            val lineNum = doc.getLineNumber(offset)
+            val lineStart = doc.getLineStartOffset(lineNum)
+            val lineEnd = doc.getLineEndOffset(lineNum)
+            val lineText = doc.getText(com.intellij.openapi.util.TextRange(lineStart, lineEnd)).trim()
+            return if (lineText.length > 120) lineText.substring(0, 117) + "..." else lineText
         }
 
         override fun getLocationString(): String {
             val vf = file.virtualFile ?: return ""
             val basePath = file.project.basePath
-            return if (basePath != null && vf.path.startsWith("$basePath/")) {
+            val relPath = if (basePath != null && vf.path.startsWith("$basePath/")) {
                 vf.path.removePrefix("$basePath/")
             } else {
                 vf.path
             }
+            val doc = file.viewProvider.document
+            val lineNum = if (doc != null) doc.getLineNumber(offset) + 1 else 0
+            return "$relPath:$lineNum"
         }
 
         override fun getIcon(unused: Boolean): Icon? = file.fileType.icon

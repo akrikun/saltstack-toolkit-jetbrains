@@ -223,7 +223,8 @@ class SaltAnnotator : ExternalAnnotator<SaltAnnotator.Input, List<SaltAnnotator.
     }
 
     private fun checkDuplicateTopLevelKeys(lines: List<String>, offsets: IntArray, issues: MutableList<Issue>) {
-        val keyRe = Regex("^([a-zA-Z_][\\w.\\-/() ]*):$")
+        // Match top-level keys with or without inline values: "key:" or "key: value"
+        val keyRe = Regex("^([a-zA-Z_][\\w.\\-/() ]*):(?:\\s.*|$)")
         val keys = mutableMapOf<String, MutableList<Int>>()
 
         for ((i, line) in lines.withIndex()) {
