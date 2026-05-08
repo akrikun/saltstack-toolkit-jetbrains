@@ -19,6 +19,13 @@ dependencies {
         intellijIdeaCommunity(providers.gradleProperty("platformVersion"))
         instrumentationTools()
     }
+    // Plain JUnit5 only — these are pure-Kotlin unit tests, no IntelliJ test framework.
+    testImplementation("org.junit.jupiter:junit-jupiter:5.14.2")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 intellijPlatform {

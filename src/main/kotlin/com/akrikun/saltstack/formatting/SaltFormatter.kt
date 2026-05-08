@@ -54,7 +54,7 @@ object SaltFormatter {
         return collapsed.joinToString("\n") + "\n"
     }
 
-    private fun normalizeJinjaTags(text: String, enforceDash: Boolean): String {
+    fun normalizeJinjaTags(text: String, enforceDash: Boolean): String {
         val segments = mutableListOf<Pair<String, Boolean>>() // (text, isComment)
         var rest = text
 
@@ -79,7 +79,7 @@ object SaltFormatter {
         }
     }
 
-    private fun normalizeJinjaExpressions(text: String, enforceDash: Boolean): String {
+    fun normalizeJinjaExpressions(text: String, enforceDash: Boolean): String {
         var t = text
 
         // Opening {% — enforce dash

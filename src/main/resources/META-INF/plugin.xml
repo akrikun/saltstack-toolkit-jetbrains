@@ -96,6 +96,30 @@
     ]]></description>
 
     <change-notes><![CDATA[
+        <h3>1.5.4</h3>
+        <h4>Fixes</h4>
+        <ul>
+            <li><b>Completion in Jinja files</b>: completion now also fires in <code>.jinja</code>/<code>.j2</code> files
+                for <code>salt[...]</code>, <code>salt.</code>, <code>pillar.get</code>, <code>grains.get</code>,
+                <code>sdb.get</code>, <code>defaults.merge</code>. Previously only worked in <code>.sls</code>.</li>
+            <li><b>Jinja block checker</b>: <code>{% set X = ... %}</code> no longer falsely required
+                <code>{% endset %}</code>. Block-form <code>{% set X %}…{% endset %}</code> with whitespace
+                control <code>{%- ... -%}</code> is now recognized correctly. Filters/named-args
+                (<code>{% set x | upper(first=true) %}</code>) no longer trigger a false positive.</li>
+            <li><b><code>salt://</code> resolver</b>: supports quoted forms (<code>"salt://..."</code> /
+                <code>'salt://...'</code>), strips <code>?query</code>, <code>#hash</code>, and trailing comments.
+                Cursor-aware so multiple <code>salt://</code> on one line resolve correctly.</li>
+            <li><b>Requisite diagnostics</b>: removed the hardcoded 6-space indent assumption (now uses indent
+                relative to the requisite-block header). Typed requisites (<code>- file: foo</code>,
+                <code>- pkg: nginx</code>) are no longer flagged as false positives — they target by-name
+                across formulas.</li>
+        </ul>
+        <h4>Tests</h4>
+        <ul>
+            <li>JUnit 5 test suite added (42 tests across formatter, set detection, salt:// extraction,
+                and requisite checks).</li>
+        </ul>
+
         <h3>1.5.0</h3>
         <h4>Pillar navigation overhaul</h4>
         <ul>
@@ -181,9 +205,13 @@
             language="Jinja"
             implementationClass="com.akrikun.saltstack.inspections.SaltAnnotator"/>
 
-        <!-- Completion -->
+        <!-- Completion: register for both SLS and Jinja so salt[...]/salt./pillar.get/grains.get
+             suggestions work in pure Jinja templates too. -->
         <completion.contributor
             language="SLS"
+            implementationClass="com.akrikun.saltstack.completion.SaltCompletionContributor"/>
+        <completion.contributor
+            language="Jinja"
             implementationClass="com.akrikun.saltstack.completion.SaltCompletionContributor"/>
 
         <!-- Documentation -->

@@ -101,10 +101,11 @@ class SaltAnnotator : ExternalAnnotator<SaltAnnotator.Input, List<SaltAnnotator.
     }
 
     private fun checkUnclosedJinjaBlocks(lines: List<String>, offsets: IntArray, issues: MutableList<Issue>) {
-        val openers = setOf("for", "if", "block", "macro", "call", "filter", "raw")
+        val openers = setOf("for", "if", "block", "macro", "call", "filter", "raw", "set")
         val closerToOpener = mapOf(
             "endfor" to "for", "endif" to "if", "endblock" to "block",
             "endmacro" to "macro", "endcall" to "call", "endfilter" to "filter", "endraw" to "raw",
+            "endset" to "set",
         )
         val tagRe = Regex("\\{%-?\\s*(\\w+)")
         val stack = ArrayDeque<Pair<String, Int>>()
@@ -113,7 +114,13 @@ class SaltAnnotator : ExternalAnnotator<SaltAnnotator.Input, List<SaltAnnotator.
             for (m in tagRe.findAll(line)) {
                 val kw = m.groupValues[1]
                 when (kw) {
-                    in openers -> stack.addLast(kw to i)
+                    in openers -> {
+                        // `set` has two forms:
+                        //   - Assignment: {% set X = expr %} — single tag, NO endset
+                        //   - Block:      {% set X %}...{% endset %} — multi-tag, endset required
+                        if (kw == "set" && isAssignmentSet(line, m.range.first)) continue
+                        stack.addLast(kw to i)
+                    }
                     in closerToOpener.keys -> {
                         val expected = closerToOpener[kw]
                         if (stack.isEmpty()) {
@@ -183,42 +190,102 @@ class SaltAnnotator : ExternalAnnotator<SaltAnnotator.Input, List<SaltAnnotator.
     }
 
     private fun checkRequisiteRefs(lines: List<String>, offsets: IntArray, issues: MutableList<Issue>) {
-        val stateIdRe = Regex("^([a-zA-Z_][\\w.\\-/() ]*):$")
-        val requisiteStartRe = Regex("^\\s+-\\s+(require|watch|onchanges|onfail|prereq|listen|use|require_in|watch_in|onchanges_in|onfail_in|prereq_in|listen_in):")
-        val refRe = Regex("^\\s{6,}-\\s+([\\w][\\w.\\-/() ]*)$")
+        for (issue in findUnknownRequisiteRefs(lines, offsets)) {
+            issues.add(issue)
+        }
+    }
 
-        // Collect all local state IDs first
-        val stateIds = mutableSetOf<String>()
-        for (line in lines) {
-            val trimmed = line.trimStart()
-            if (trimmed.startsWith("{%")) continue
-            val m = stateIdRe.matchEntire(line) ?: continue
-            stateIds.add(m.groupValues[1])
+    companion object {
+        /**
+         * Decide if `{% set ... %}` at `tagStart` in `text` is an assignment form
+         * (no endset needed) vs a block form (`{% set NAME %}...{% endset %}`).
+         *
+         * Heuristic: after `set`, look up to the closing `%}`/`-%}`. Assignment
+         * form starts with a target list (`var`, `ns.foo`, `a, b`) followed by `=`.
+         * Block form has no `=` at the start; filters/named-args (`upper(first=true)`)
+         * are NOT before `=` and so do not falsely match.
+         */
+        @JvmStatic
+        fun isAssignmentSet(text: String, tagStart: Int): Boolean {
+            val tail = text.substring(tagStart)
+            val setHead = Regex("^\\{%-?\\s*set\\b").find(tail) ?: return false
+            val afterSet = tail.substring(setHead.value.length)
+            val closeIdx = Regex("-?%\\}").find(afterSet)?.range?.first ?: afterSet.length
+            val checkRange = afterSet.substring(0, closeIdx).trimStart()
+            return Regex("^[\\w.]+(?:\\s*,\\s*[\\w.]+)*\\s*=").containsMatchIn(checkRange)
         }
 
-        var inRequisite = false
-        for ((i, line) in lines.withIndex()) {
-            if (requisiteStartRe.containsMatchIn(line)) {
-                inRequisite = true
-                continue
+        /**
+         * Find requisite refs that don't match a top-level state ID in `lines`.
+         * Returns Issues with absolute offsets computed from `lineOffsets`.
+         *
+         * Improvements over the previous regex-based approach:
+         *  - flexible indentation (no hardcoded 6-space requirement); uses indent
+         *    relative to the requisite-block header (`- require:`).
+         *  - typed requisites (`- file: foo`, `- pkg: nginx`) target by-name
+         *    across formulas — skipped entirely to avoid false positives.
+         *  - skips path-like (`/etc/foo`, `.substate`) and Jinja-templated refs.
+         */
+        @JvmStatic
+        fun findUnknownRequisiteRefs(lines: List<String>, lineOffsets: IntArray): List<Issue> {
+            val stateIdRe = Regex("^([a-zA-Z_][\\w.\\-/() ]*):(?:\\s|$)")
+            val stateIds = mutableSetOf<String>()
+            for (line in lines) {
+                if (line.trimStart().startsWith("{%")) continue
+                val m = stateIdRe.find(line) ?: continue
+                stateIds.add(m.groupValues[1])
             }
-            if (inRequisite) {
-                val m = refRe.matchEntire(line)
-                if (m != null) {
-                    val ref = m.groupValues[1].trim()
-                    if (ref.contains("{{") || ref.contains("{%") || ref.contains(":")) continue
-                    if (!stateIds.contains(ref) && !ref.contains("/") && !ref.contains(".")) {
-                        val startCol = line.indexOf(ref)
-                        issues.add(Issue(
-                            HighlightSeverity.WEAK_WARNING,
-                            TextRange(offsets[i] + startCol, offsets[i] + startCol + ref.length),
-                            "State ID \"$ref\" not found in this file (could be from an included SLS)",
-                        ))
-                    }
-                } else if (line.isNotBlank() && !line.matches(Regex("^\\s{6,}.*"))) {
-                    inRequisite = false
+
+            // Allow trailing whitespace and an optional `# comment` after the colon.
+            val requisiteHeaderRe = Regex(
+                "^(\\s+)-\\s+(?:require|watch|onchanges|onfail|prereq|listen|use|" +
+                "require_in|watch_in|onchanges_in|onfail_in|prereq_in|listen_in)(?:_any)?:\\s*(?:#.*)?$"
+            )
+            val entryRe = Regex("^(\\s+)-\\s+(?:(\\w+):\\s+)?([\\w][\\w.\\-/() ]*)\\s*$")
+
+            val issues = mutableListOf<Issue>()
+            var requisiteIndent = -1
+
+            for ((i, line) in lines.withIndex()) {
+                if (line.isBlank()) continue
+
+                val headerMatch = requisiteHeaderRe.matchEntire(line)
+                if (headerMatch != null) {
+                    requisiteIndent = headerMatch.groupValues[1].length
+                    continue
+                }
+                if (requisiteIndent < 0) continue
+
+                val indent = line.length - line.trimStart().length
+                if (indent <= requisiteIndent) {
+                    requisiteIndent = -1
+                    val nextHeader = requisiteHeaderRe.matchEntire(line)
+                    if (nextHeader != null) requisiteIndent = nextHeader.groupValues[1].length
+                    continue
+                }
+
+                val entryMatch = entryRe.matchEntire(line) ?: continue
+                val moduleType: String? = entryMatch.groups[2]?.value
+                val ref = entryMatch.groupValues[3].trim()
+
+                if (ref.contains("{{") || ref.contains("{%")) continue
+                // Typed requisites target by-name across formulas — never local state IDs.
+                if (moduleType != null) continue
+                // Untyped path-like refs aren't local state IDs. (Note: `ref` cannot
+                // start with `.` because entryRe's first character class is `[\w]`,
+                // but the contains("/") branch is reachable.)
+                if (ref.contains("/")) continue
+
+                if (!stateIds.contains(ref)) {
+                    val startCol = line.indexOf(ref, indent)
+                    issues.add(Issue(
+                        HighlightSeverity.WEAK_WARNING,
+                        TextRange(lineOffsets[i] + startCol, lineOffsets[i] + startCol + ref.length),
+                        "State ID \"$ref\" not found in this file (could be from an included SLS)",
+                    ))
                 }
             }
+            return issues
         }
     }
 
