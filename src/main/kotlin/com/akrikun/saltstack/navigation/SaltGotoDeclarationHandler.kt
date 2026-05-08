@@ -56,14 +56,14 @@ class SaltGotoDeclarationHandler : GotoDeclarationHandler {
                 val cache = PillarUsageCache.getInstance(project)
                 val results = cache.findUsages(keyPath)
                 if (results.isNotEmpty()) {
-                    val locations = mutableListOf<PsiElement>()
+                    val matchedText = keyPath.last()
+                    val targets = mutableListOf<PsiElement>()
                     for ((f, off) in results) {
                         val vf = LocalFileSystem.getInstance().findFileByIoFile(f) ?: continue
-                        val psi = vf.toPsi(project) ?: continue
-                        val elem = psi.findElementAt(off) ?: psi
-                        locations.add(elem)
+                        val psi = vf.toPsi(project) as? com.intellij.psi.PsiFile ?: continue
+                        targets.add(PillarUsageTarget(psi, off, matchedText))
                     }
-                    if (locations.isNotEmpty()) return locations.toTypedArray()
+                    if (targets.isNotEmpty()) return targets.toTypedArray()
                 }
             }
         }
@@ -182,13 +182,32 @@ class SaltGotoDeclarationHandler : GotoDeclarationHandler {
         // Fallback: project base dir
         project.basePath?.let { basePaths.add(it) }
 
-        for (base in basePaths) {
-            for (root in roots) {
-                val candidate = File(base, "$root/$relPath")
+        // For absolute roots: probe directly. For relative roots: probe under each base.
+        for (root in roots) {
+            if (File(root).isAbsolute) {
+                val candidate = File(root, relPath)
                 if (candidate.isFile) {
                     val vf = LocalFileSystem.getInstance().findFileByIoFile(candidate) ?: continue
                     return vf.toPsi(project)
                 }
+            } else {
+                for (base in basePaths) {
+                    val candidate = File(File(base, root), relPath)
+                    if (candidate.isFile) {
+                        val vf = LocalFileSystem.getInstance().findFileByIoFile(candidate) ?: continue
+                        return vf.toPsi(project)
+                    }
+                }
+            }
+        }
+
+        // Fallback: try relative to current file's directory
+        val currentDir = currentFile.virtualFile?.parent?.path
+        if (currentDir != null) {
+            val candidate = File(currentDir, relPath)
+            if (candidate.isFile) {
+                val vf = LocalFileSystem.getInstance().findFileByIoFile(candidate)
+                if (vf != null) return vf.toPsi(project)
             }
         }
         return null
