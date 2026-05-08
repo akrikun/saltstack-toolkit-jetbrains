@@ -45,7 +45,7 @@ class SaltCompletionContributor : CompletionContributor() {
                     }
 
                     // After "pillar.", "grains.", "sdb.", "defaults." — suggest known funcs
-                    val dotMatch = Regex("(pillar|grains|sdb|defaults)\\.\\w*$").find(currentLine)
+                    val dotMatch = DOT_MATCH_REGEX.find(currentLine)
                     if (dotMatch != null) {
                         DOT_METHODS[dotMatch.groupValues[1]]?.forEach { (name, detail) ->
                             result.addElement(
@@ -114,6 +114,10 @@ class SaltCompletionContributor : CompletionContributor() {
     }
 
     companion object {
+        // Precompiled — `addCompletions` runs on every keystroke, so we don't
+        // want to re-allocate this regex every time.
+        private val DOT_MATCH_REGEX = Regex("(pillar|grains|sdb|defaults)\\.\\w*$")
+
         // Methods suggested after `pillar.`, `grains.`, `sdb.`, `defaults.` in any context.
         val DOT_METHODS: Map<String, List<Pair<String, String>>> = mapOf(
             "pillar" to listOf(

@@ -141,6 +141,21 @@ other:
     }
 
     @Test
+    fun `header with trailing inline comment is recognized`() {
+        // Was previously rejected: header regex ended at `:\s*$`, so `# comment`
+        // after the colon caused the requisite block to be missed entirely.
+        val src = """
+my_state:
+  cmd.run:
+    - require:  # depends on package below
+      - missing_id
+"""
+        val issues = analyze(src)
+        assertEquals(1, issues.size)
+        assertTrue(issues[0].message.contains("missing_id"))
+    }
+
+    @Test
     fun `exits requisite block when indent decreases`() {
         val src = """
 my_state:

@@ -236,9 +236,10 @@ class SaltAnnotator : ExternalAnnotator<SaltAnnotator.Input, List<SaltAnnotator.
                 stateIds.add(m.groupValues[1])
             }
 
+            // Allow trailing whitespace and an optional `# comment` after the colon.
             val requisiteHeaderRe = Regex(
                 "^(\\s+)-\\s+(?:require|watch|onchanges|onfail|prereq|listen|use|" +
-                "require_in|watch_in|onchanges_in|onfail_in|prereq_in|listen_in)(?:_any)?:\\s*$"
+                "require_in|watch_in|onchanges_in|onfail_in|prereq_in|listen_in)(?:_any)?:\\s*(?:#.*)?$"
             )
             val entryRe = Regex("^(\\s+)-\\s+(?:(\\w+):\\s+)?([\\w][\\w.\\-/() ]*)\\s*$")
 
@@ -270,8 +271,10 @@ class SaltAnnotator : ExternalAnnotator<SaltAnnotator.Input, List<SaltAnnotator.
                 if (ref.contains("{{") || ref.contains("{%")) continue
                 // Typed requisites target by-name across formulas — never local state IDs.
                 if (moduleType != null) continue
-                // Untyped path-like refs aren't local state IDs.
-                if (ref.startsWith(".") || ref.contains("/")) continue
+                // Untyped path-like refs aren't local state IDs. (Note: `ref` cannot
+                // start with `.` because entryRe's first character class is `[\w]`,
+                // but the contains("/") branch is reachable.)
+                if (ref.contains("/")) continue
 
                 if (!stateIds.contains(ref)) {
                     val startCol = line.indexOf(ref, indent)

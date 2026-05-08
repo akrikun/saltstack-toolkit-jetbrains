@@ -20,7 +20,7 @@ dependencies {
         instrumentationTools()
     }
     // Plain JUnit5 only — these are pure-Kotlin unit tests, no IntelliJ test framework.
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.14.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
