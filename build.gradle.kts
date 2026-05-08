@@ -18,6 +18,10 @@ dependencies {
     intellijPlatform {
         intellijIdeaCommunity(providers.gradleProperty("platformVersion"))
         instrumentationTools()
+        // Pull the Plugin Verifier CLI so `gradle verifyPlugin` has an
+        // executable to invoke. Without this the task fails with:
+        //   "No IntelliJ Plugin Verifier executable found".
+        pluginVerifier()
     }
     // Plain JUnit5 only — these are pure-Kotlin unit tests, no IntelliJ test framework.
     testImplementation("org.junit.jupiter:junit-jupiter:5.14.2")
@@ -38,10 +42,15 @@ intellijPlatform {
     }
 
     // Plugin Verifier configuration. Run via `gradle verifyPlugin`.
-    // Without an explicit `ides` block the verifier picks the IDE the plugin
-    // is built against (IDEA-IC at the platformVersion). Add other IDEs via
-    // CLI args in CI if a wider matrix is needed:
-    //   gradle verifyPlugin -P verifierIdes="IC-2024.1,PY-2024.1,WS-2024.1"
+    pluginVerification {
+        ides {
+            // Verify against IDEA Community at the lower bound (since-build
+            // 241 = 2024.1) plus a recent release. Keep the set small —
+            // each IDE adds ~500 MB download to CI runtime.
+            ide("IC", "2024.1")
+            ide("IC", "2024.3")
+        }
+    }
 
     signing {
         certificateChain = providers.environmentVariable("CERTIFICATE_CHAIN")
