@@ -49,78 +49,26 @@ class SaltGotoDeclarationHandler : GotoDeclarationHandler {
         resolvePillarInclude(lineText, colInLine, project, file)?.let { return arrayOf(it) }
         resolveRequisiteRef(lineText, colInLine, doc, file, project)?.let { return arrayOf(it) }
 
-        // In pillar files: clicking on a top-level key — find usages in state files
-        if (isPillarFile(file)) {
-            resolvePillarKeyUsages(lineText, colInLine, project, file)?.let { return it }
+        // In pillar files: clicking on a key — find usages in state files (path-aware, with aliases & imports)
+        if (com.akrikun.saltstack.PillarContext.isPillarFile(file)) {
+            val keyPath = com.akrikun.saltstack.PillarContext.getPillarKeyPath(doc, offset)
+            if (keyPath != null && keyPath.isNotEmpty()) {
+                val cache = PillarUsageCache.getInstance(project)
+                val results = cache.findUsages(keyPath)
+                if (results.isNotEmpty()) {
+                    val locations = mutableListOf<PsiElement>()
+                    for ((f, off) in results) {
+                        val vf = LocalFileSystem.getInstance().findFileByIoFile(f) ?: continue
+                        val psi = vf.toPsi(project) ?: continue
+                        val elem = psi.findElementAt(off) ?: psi
+                        locations.add(elem)
+                    }
+                    if (locations.isNotEmpty()) return locations.toTypedArray()
+                }
+            }
         }
 
         return null
-    }
-
-    private fun isPillarFile(file: com.intellij.psi.PsiFile): Boolean {
-        val path = file.virtualFile?.path ?: return false
-        val pillarRoots = com.akrikun.saltstack.SaltSettings.getInstance().pillarRoots
-        return pillarRoots.any { root ->
-            if (File(root).isAbsolute) {
-                path.startsWith(root + File.separator)
-            } else {
-                path.contains("/$root/") || path.contains("\\$root\\")
-            }
-        } || path.contains("/pillar/") || path.contains("/pillars/")
-    }
-
-    private fun resolvePillarKeyUsages(
-        line: String, col: Int, project: Project, currentFile: com.intellij.psi.PsiFile,
-    ): Array<PsiElement>? {
-        // Top-level pillar key: "^([\w][\w.\-]*):"
-        val m = Regex("^([\\w][\\w.\\-]*):").find(line) ?: return null
-        val keyRange = m.groups[1]?.range ?: return null
-        if (col !in keyRange.first..keyRange.last + 1) return null
-
-        val key = m.groupValues[1]
-        val settings = com.akrikun.saltstack.SaltSettings.getInstance()
-        val locations = mutableListOf<PsiElement>()
-
-        // Build search bases from stateRoots
-        val basePaths = mutableListOf<String>()
-        for (root in settings.stateRoots) {
-            if (File(root).isAbsolute) {
-                basePaths.add(root)
-            } else {
-                project.basePath?.let { basePaths.add(File(it, root).absolutePath) }
-            }
-        }
-
-        // Pattern matches: pillar.KEY, pillar['KEY'], pillar["KEY"], pillar.get('KEY'), salt['pillar.get']('KEY')
-        val escapedKey = Regex.escape(key)
-        val re = Regex(
-            "(?:pillar\\.(?:get\\s*\\(\\s*)?[\"']?$escapedKey[\"']?" +
-            "|pillar\\[[\"']$escapedKey[\"']\\]" +
-            "|salt\\[[\"']pillar\\.get[\"']\\]\\s*\\(\\s*[\"']$escapedKey)"
-        )
-
-        val seen = mutableSetOf<String>()
-        for (base in basePaths) {
-            val baseFile = File(base)
-            if (!baseFile.isDirectory) continue
-            baseFile.walkTopDown()
-                .filter { it.isFile && it.extension.lowercase() in setOf("sls", "jinja", "j2", "jinja2") }
-                .forEach { f ->
-                    if (!seen.add(f.absolutePath)) return@forEach
-                    val text = try { f.readText() } catch (e: Exception) { return@forEach }
-                    for (match in re.findAll(text)) {
-                        val after = text.getOrNull(match.range.last + 1)
-                        if (after != null && after.isLetterOrDigit()) continue
-                        val vf = LocalFileSystem.getInstance().findFileByIoFile(f) ?: continue
-                        val psi = vf.toPsi(project) ?: continue
-                        // Find PSI element at offset
-                        val elem = psi.findElementAt(match.range.first) ?: psi
-                        locations.add(elem)
-                    }
-                }
-        }
-
-        return if (locations.isNotEmpty()) locations.toTypedArray() else null
     }
 
     // ===== resolvers =====

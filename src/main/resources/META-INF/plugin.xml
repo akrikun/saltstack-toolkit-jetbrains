@@ -96,21 +96,45 @@
     ]]></description>
 
     <change-notes><![CDATA[
+        <h3>1.5.0</h3>
+        <h4>Pillar navigation overhaul</h4>
+        <ul>
+            <li><b>Nested key paths</b> — Cmd+Click on any pillar key (top-level or nested) now finds usages by full YAML path.
+                Click on <code>data:</code> inside <code>netbox: > data:</code> searches for <code>pillar.netbox.data</code> (and deeper).</li>
+            <li><b>Local Jinja aliases</b> — detects <code>{% set foo = pillar.x %}</code> and tracks <code>foo.y</code> references as <code>pillar.x.y</code>.</li>
+            <li><b>Cross-file dict maps</b> — detects <code>{% set bar = { 'key': pillar.foo.key } %}</code> in one file and
+                <code>{% from "X.jinja" import bar %}</code> in another, then resolves <code>bar.key</code> references back to
+                <code>pillar.foo.key</code> across files.</li>
+        </ul>
+        <h4>Pillar hover with state.apply</h4>
+        <p>When hovering over a pillar key in a pillar file, the popup now shows:</p>
+        <ul>
+            <li>Full YAML key path</li>
+            <li>All access forms (<code>pillar.x.y</code>, <code>pillar['x']['y']</code>, <code>salt['pillar.get']('x:y')</code>)</li>
+            <li><b>List of state formulas that consume this key</b>, with ready-to-run
+                <code>salt '&lt;minion&gt;' state.apply &lt;formula&gt;</code> commands and per-formula usage counts</li>
+        </ul>
+        <h4>Performance</h4>
+        <ul>
+            <li>Two-level cache for pillar usage search:
+                <ul>
+                    <li>File list cache (invalidated on file create/delete or <code>stateRoots</code> change)</li>
+                    <li>Per-file content + analysis cache with mtime check (invalidated on file save/change)</li>
+                </ul>
+            </li>
+            <li>Subsequent searches with unchanged files skip disk reads entirely.</li>
+        </ul>
+
+        <h3>1.4.1</h3>
+        <ul>
+            <li>Fix: settings (state/pillar roots, toggles) now persist correctly after Apply/OK.</li>
+        </ul>
+
         <h3>1.4.0</h3>
         <ul>
-            <li>Initial release for JetBrains IDEs</li>
-            <li>Syntax highlighting for SLS and Jinja2 files</li>
-            <li>Inspections: duplicate top-level keys (state IDs and pillar keys), unclosed Jinja blocks,
-                tab characters, trailing whitespace, empty state blocks, requisite references</li>
-            <li>Formatting: auto on save and manual (Shift+Alt+F), Jinja tag normalization,
-                <code>{%-</code> dash enforcement</li>
-            <li>Navigation: Structure View, Go-to-Definition for Jinja imports/includes,
-                <code>salt://</code> sources, SLS includes, pillar includes, requisite references</li>
-            <li>Reverse navigation: Cmd+Click on a pillar key finds all usages in state files</li>
-            <li>Auto-completion: 50+ state modules, parameters, requisites, execution modules</li>
-            <li>Hover documentation for state modules, requisites, builtins, exec modules</li>
-            <li>40+ live templates (snippets) for common Salt patterns</li>
-            <li>Settings panel with configurable State/Pillar roots and lint toggles</li>
+            <li>Initial release for JetBrains IDEs.</li>
+            <li>Syntax highlighting, inspections, formatting, navigation, completion, hover, live templates.</li>
+            <li>Settings panel with configurable State/Pillar roots and lint toggles.</li>
         </ul>
     ]]></change-notes>
 

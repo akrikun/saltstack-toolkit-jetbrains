@@ -72,8 +72,16 @@ class SaltSettingsConfigurable : Configurable {
     }
 
     override fun apply() {
-        settings.stateRoots = parseRoots(stateRootsField.text).toMutableList()
+        val newStateRoots = parseRoots(stateRootsField.text).toMutableList()
+        val stateRootsChanged = newStateRoots != settings.stateRoots
+        settings.stateRoots = newStateRoots
         settings.pillarRoots = parseRoots(pillarRootsField.text).toMutableList()
+        if (stateRootsChanged) {
+            // Invalidate pillar usage cache for all open projects
+            for (project in com.intellij.openapi.project.ProjectManager.getInstance().openProjects) {
+                com.akrikun.saltstack.navigation.PillarUsageCache.getInstance(project).invalidateAll()
+            }
+        }
         settings.lintEnabled = lintEnabled.isSelected
         settings.checkTabs = checkTabs.isSelected
         settings.checkTrailingWhitespace = checkTrailingWhitespace.isSelected

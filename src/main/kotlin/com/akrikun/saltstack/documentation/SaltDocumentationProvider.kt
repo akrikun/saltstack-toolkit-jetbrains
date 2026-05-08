@@ -21,6 +21,18 @@ class SaltDocumentationProvider : AbstractDocumentationProvider() {
         REQUISITE_DOCS[word]?.let { return formatDoc(word, it) }
         BUILTIN_DOCS[word]?.let { return formatDoc(word, it) }
 
+        // In pillar files: build hover with key path + state.apply commands
+        val file = target.containingFile
+        if (file != null && com.akrikun.saltstack.PillarContext.isPillarFile(file)) {
+            val doc = file.viewProvider.document
+            if (doc != null) {
+                val keyPath = com.akrikun.saltstack.PillarContext.getPillarKeyPath(doc, target.textOffset)
+                if (keyPath != null && keyPath.isNotEmpty()) {
+                    return buildPillarHover(file.project, keyPath)
+                }
+            }
+        }
+
         // Try matching module.function patterns from neighbors
         val line = readLine(target.containingFile, target) ?: return null
         for ((key, doc) in STATE_DOCS) {
@@ -31,6 +43,40 @@ class SaltDocumentationProvider : AbstractDocumentationProvider() {
         }
 
         return null
+    }
+
+    private fun buildPillarHover(project: com.intellij.openapi.project.Project, keyPath: List<String>): String {
+        val dottedPath = keyPath.joinToString(".")
+        val bracketPath = keyPath.joinToString("") { "['$it']" }
+        val sb = StringBuilder()
+        sb.append("<b>Pillar key path:</b> <code>$dottedPath</code><br><br>")
+        sb.append("Access in states as:<br>")
+        sb.append("&nbsp;&bull; <code>pillar.$dottedPath</code><br>")
+        sb.append("&nbsp;&bull; <code>pillar$bracketPath</code><br>")
+        if (keyPath.size > 1) {
+            sb.append("&nbsp;&bull; <code>salt['pillar.get']('${keyPath.joinToString(":")}')</code><br>")
+        }
+        sb.append("<br>")
+        try {
+            val cache = com.akrikun.saltstack.navigation.PillarUsageCache.getInstance(project)
+            val byState = cache.findUsagesByState(keyPath)
+            if (byState.isNotEmpty()) {
+                val total = byState.values.sumOf { it.size }
+                val stateWord = if (byState.size == 1) "state" else "states"
+                val usageWord = if (total == 1) "usage" else "usages"
+                sb.append("<b>Apply to minion</b> (${byState.size} $stateWord, $total $usageWord):<br>")
+                val sorted = byState.entries.sortedByDescending { it.value.size }
+                for ((state, locs) in sorted) {
+                    val u = if (locs.size == 1) "usage" else "usages"
+                    sb.append("&nbsp;&bull; <code>salt '&lt;minion&gt;' state.apply $state</code> <i>(${locs.size} $u)</i><br>")
+                }
+            } else {
+                sb.append("<i>No state file uses this pillar key.</i><br>")
+            }
+        } catch (e: Exception) {
+            sb.append("<i>Failed to compute usages.</i><br>")
+        }
+        return sb.toString()
     }
 
     private fun readLine(file: PsiFile?, element: PsiElement): String? {
