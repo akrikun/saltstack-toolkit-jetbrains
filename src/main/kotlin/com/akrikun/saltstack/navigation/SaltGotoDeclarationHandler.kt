@@ -45,6 +45,7 @@ class SaltGotoDeclarationHandler : GotoDeclarationHandler {
         resolveJinjaFromImport(lineText, colInLine, project, file)?.let { return arrayOf(it) }
         resolveJinjaInclude(lineText, colInLine, project, file)?.let { return arrayOf(it) }
         resolveSaltSource(lineText, colInLine, project, file)?.let { return arrayOf(it) }
+        resolveFastYamlHosts(lineText, colInLine, project, file)?.let { return it }
         resolveSlsInclude(lineText, colInLine, project, file)?.let { return arrayOf(it) }
         resolvePillarInclude(lineText, colInLine, project, file)?.let { return arrayOf(it) }
         resolveRequisiteRef(lineText, colInLine, doc, file, project)?.let { return arrayOf(it) }
@@ -83,7 +84,9 @@ class SaltGotoDeclarationHandler : GotoDeclarationHandler {
 
     private fun resolveJinjaInclude(line: String, col: Int, project: Project, currentFile: com.intellij.psi.PsiFile): PsiElement? {
         // {% include "path/to/file" %}
-        val m = Regex("\\{%[-\\s]*include\\s+[\"']([^\"']+)[\"']").find(line) ?: return null
+        // {% import_yaml "..." as foo %}, {% import_json "..." as foo %}, {% import_text "..." as foo %}
+        // — Salt's YAML/JSON/text importers behave like file references for navigation.
+        val m = Regex("\\{%[-\\s]*(?:include|import_yaml|import_json|import_text)\\s+[\"']([^\"']+)[\"']").find(line) ?: return null
         val pathRange = m.groups[1]?.range ?: return null
         if (col !in pathRange.first..pathRange.last + 1) return null
         return findInRoots(m.groupValues[1], project, currentFile, "salt-or-pillar") { _, _ -> true }
@@ -92,6 +95,37 @@ class SaltGotoDeclarationHandler : GotoDeclarationHandler {
     private fun resolveSaltSource(line: String, col: Int, project: Project, currentFile: com.intellij.psi.PsiFile): PsiElement? {
         val target = extractSaltUri(line, col) ?: return null
         return findInRoots(target, project, currentFile, "salt") { _, _ -> true }
+    }
+
+    /**
+     * `salt.fast_yaml.hosts("common_meta")` — Salt custom module that loads
+     * a YAML file by basename. Cmd+Click on the string arg searches every
+     * configured state/pillar root for `<name>.{yaml,yml,sls,json}`.
+     */
+    private fun resolveFastYamlHosts(line: String, col: Int, project: Project, currentFile: com.intellij.psi.PsiFile): Array<PsiElement>? {
+        val name = extractFastYamlArg(line, col) ?: return null
+        val settings = com.akrikun.saltstack.SaltSettings.getInstance()
+        val basePaths = mutableListOf<String>()
+        for (root in settings.stateRoots + settings.pillarRoots) {
+            if (java.io.File(root).isAbsolute) basePaths.add(root)
+            else project.basePath?.let { basePaths.add(java.io.File(it, root).absolutePath) }
+        }
+        val results = mutableListOf<PsiElement>()
+        val seen = mutableSetOf<String>()
+        for (base in basePaths) {
+            val baseFile = java.io.File(base)
+            if (!baseFile.isDirectory) continue
+            baseFile.walkTopDown()
+                .filter { it.isFile && it.nameWithoutExtension == name &&
+                          it.extension.lowercase() in setOf("yaml", "yml", "sls", "json") }
+                .forEach { f ->
+                    if (!seen.add(f.absolutePath)) return@forEach
+                    val vf = LocalFileSystem.getInstance().findFileByIoFile(f) ?: return@forEach
+                    val psi = vf.toPsi(project) ?: return@forEach
+                    results.add(psi)
+                }
+        }
+        return if (results.isNotEmpty()) results.toTypedArray() else null
     }
 
     private fun resolveSlsInclude(line: String, col: Int, project: Project, currentFile: com.intellij.psi.PsiFile): PsiElement? {

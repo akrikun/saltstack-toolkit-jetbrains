@@ -1,5 +1,6 @@
 package com.akrikun.saltstack
 
+import com.akrikun.saltstack.navigation.extractFastYamlArg
 import com.akrikun.saltstack.navigation.extractSaltUri
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -86,5 +87,37 @@ class SaltUriExtractorTest {
     @Test
     fun `returns null when no salt scheme present`() {
         assertNull(extractSaltUri("    - source: /etc/nginx.conf", 10))
+    }
+
+    // === fast_yaml.hosts() arg extraction ===
+
+    @Test
+    fun `fast_yaml dot form, cursor on arg`() {
+        val line = """{%- set meta = salt.fast_yaml.hosts("common_meta") %}"""
+        assertEquals("common_meta", extractFastYamlArg(line, line.indexOf("common_meta")))
+    }
+
+    @Test
+    fun `fast_yaml bracket form`() {
+        val line = """{{ salt['fast_yaml.hosts']('common_meta') }}"""
+        assertEquals("common_meta", extractFastYamlArg(line, line.indexOf("common_meta")))
+    }
+
+    @Test
+    fun `fast_yaml with kwargs`() {
+        val line = """salt.fast_yaml.hosts("common_meta", attribute="ip")"""
+        assertEquals("common_meta", extractFastYamlArg(line, line.indexOf("common_meta")))
+    }
+
+    @Test
+    fun `fast_yaml cursor outside arg returns null`() {
+        val line = """salt.fast_yaml.hosts("common_meta")"""
+        assertNull(extractFastYamlArg(line, 1))
+    }
+
+    @Test
+    fun `not a fast_yaml call returns null`() {
+        val line = """salt['pillar.get']('common_meta')"""
+        assertNull(extractFastYamlArg(line, line.indexOf("common_meta")))
     }
 }
