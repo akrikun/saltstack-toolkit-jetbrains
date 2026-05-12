@@ -96,6 +96,24 @@
     ]]></description>
 
     <change-notes><![CDATA[
+        <h3>1.6.2</h3>
+        <ul>
+            <li><b>Comment hotkey fixed</b>: <code>Cmd+/</code> (line comment) and
+                <code>Cmd+Shift+/</code> (block comment) now work in <code>.sls</code> and
+                <code>.jinja</code> files. <code>.sls</code> uses <code>#</code> for line and
+                <code>{# … #}</code> for block; <code>.jinja</code> uses <code>{# … #}</code> for
+                both (Jinja has no line-comment primitive). Right-click "Comment with..." also works.</li>
+        </ul>
+
+        <h3>1.6.1</h3>
+        <ul>
+            <li>Cmd+Click navigation now also handles <code>{% import_yaml "..." as foo %}</code>,
+                <code>{% import_json "..." %}</code>, and <code>{% import_text "..." %}</code>.</li>
+            <li>Cmd+Click on the string argument of <code>salt.fast_yaml.hosts("name")</code>
+                (also bracket form <code>salt['fast_yaml.hosts']("name")</code>) opens the matching
+                <code>name.{yaml,yml,sls,json}</code> from any configured state/pillar root.</li>
+        </ul>
+
         <h3>1.6.0</h3>
         <ul>
             <li><b>Safer formatter default</b>: <code>enforceDashTags</code> is now <b>off</b> by default.
@@ -208,6 +226,14 @@
 
         <colorSettingsPage
             implementation="com.akrikun.saltstack.highlighting.SaltColorSettingsPage"/>
+
+        <!-- Line/block comment markers so Cmd+/ and "Comment with..." work. -->
+        <lang.commenter
+            language="SLS"
+            implementationClass="com.akrikun.saltstack.SlsCommenter"/>
+        <lang.commenter
+            language="Jinja"
+            implementationClass="com.akrikun.saltstack.JinjaCommenter"/>
 
         <!-- Inspections via ExternalAnnotator -->
         <externalAnnotator
