@@ -96,6 +96,18 @@
     ]]></description>
 
     <change-notes><![CDATA[
+        <h3>1.6.3</h3>
+        <ul>
+            <li><b>Formatter never breaks <code>{% include %}</code></b>: content-injecting tags are
+                kept dashless regardless of the <code>enforceDashTags</code> setting, and any existing
+                leading or trailing whitespace-control dash is stripped. A leading <code>{%- include "foo.sls" %}</code>
+                where the included file starts with a top-level YAML key (e.g. <code>alertmanager:</code>)
+                strips the preceding newline, fuses that key onto the previous line, and corrupts the
+                rendered pillar (<code>SaltRenderError: expected '&lt;document start&gt;', but found '&lt;block mapping start&gt;'</code>).
+                Other tags (<code>set</code>, <code>for</code>, <code>if</code>, <code>import*</code>, …) are
+                unaffected — they produce no output, so the dash form stays safe.</li>
+        </ul>
+
         <h3>1.6.2</h3>
         <ul>
             <li><b>Comment hotkey fixed</b>: <code>Cmd+/</code> (line comment) and
