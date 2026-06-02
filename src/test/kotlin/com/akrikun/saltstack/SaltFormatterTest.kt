@@ -35,6 +35,42 @@ class SaltFormatterTest {
         assertEquals("{%- if x %}", SaltFormatter.normalizeJinjaExpressions("{%-   if x   %}", true))
     }
 
+    // === Content-injecting tags (`include`) must never carry a dash ===
+    // Regression DO-52194: `{%- include "foo.sls" %}` strips the preceding newline
+    // and fuses the injected top-level YAML key onto the previous line, breaking the
+    // rendered pillar. The formatter must keep these tags dashless.
+
+    @Test
+    fun `include never gets a dash when enforced`() {
+        assertEquals(
+            "{% include \"skkl-vmcluster/alertmanager.sls\" with context %}",
+            SaltFormatter.normalizeJinjaExpressions("{% include \"skkl-vmcluster/alertmanager.sls\" with context %}", true),
+        )
+    }
+
+    @Test
+    fun `existing leading dash on include is stripped`() {
+        assertEquals("{% include \"foo.sls\" %}", SaltFormatter.normalizeJinjaExpressions("{%- include \"foo.sls\" %}", true))
+        assertEquals("{% include \"foo.sls\" %}", SaltFormatter.normalizeJinjaExpressions("{%-include \"foo.sls\"%}", true))
+    }
+
+    @Test
+    fun `trailing dash on include is stripped (fuses the next line)`() {
+        assertEquals("{% include \"foo.sls\" %}", SaltFormatter.normalizeJinjaExpressions("{%- include \"foo.sls\" -%}", true))
+    }
+
+    @Test
+    fun `include stays dashless with enforceDash false too`() {
+        assertEquals("{% include \"foo.sls\" %}", SaltFormatter.normalizeJinjaExpressions("{%- include \"foo.sls\" %}", false))
+    }
+
+    @Test
+    fun `include normalization is idempotent`() {
+        val once = SaltFormatter.normalizeJinjaExpressions("{%- include \"foo.sls\" -%}", true)
+        val twice = SaltFormatter.normalizeJinjaExpressions(once, true)
+        assertEquals(once, twice)
+    }
+
     // === enforceDash=false ===
 
     @Test

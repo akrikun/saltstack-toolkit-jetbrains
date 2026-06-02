@@ -79,15 +79,36 @@ object SaltFormatter {
         }
     }
 
+    /**
+     * Jinja block tags that inject rendered content at their position. A leading
+     * whitespace-control dash (`{%-`) on such a tag strips the preceding newline and
+     * fuses the injected content onto the previous output line. For pillars that
+     * include a file starting with a top-level YAML key (e.g.
+     * `{% include "foo.sls" %}` where foo.sls begins `alertmanager:`), this corrupts
+     * the document structure and the YAML parser fails ("expected '<document start>',
+     * but found '<block mapping start>'"). See the DO-52194 regression.
+     *
+     * These tags must therefore NEVER carry a whitespace-control dash, regardless of
+     * the "enforce dash" setting — any existing dash (leading or trailing) is stripped
+     * so the injected content always sits on its own line.
+     */
+    val CONTENT_INJECTING_TAGS = setOf("include")
+
     fun normalizeJinjaExpressions(text: String, enforceDash: Boolean): String {
         var t = text
 
-        // Opening {% — enforce dash
-        t = if (enforceDash) {
-            t.replace(Regex("\\{%-?\\s*(?![\\s%])"), "{%- ")
-        } else {
-            Regex("\\{%(-?)\\s*(?![\\s%])").replace(t) { m ->
-                if (m.groupValues[1].isNotEmpty()) "{%- " else "{% "
+        // Opening {% ... — decide the leading dash per keyword. Content-injecting
+        // tags (see CONTENT_INJECTING_TAGS) are forced dashless so they never break
+        // the rendered document; all other tags follow the enforceDash setting.
+        t = Regex("\\{%(-?)\\s*([a-zA-Z_]\\w*)?").replace(t) { m ->
+            val dash = m.groupValues[1]
+            val keyword = m.groupValues[2]
+            when {
+                keyword.isEmpty() -> m.value // standalone/malformed {% (e.g. multi-line tag continuation) — leave as-is
+                keyword in CONTENT_INJECTING_TAGS -> "{% $keyword" // never add a dash; strip any existing one
+                enforceDash -> "{%- $keyword"
+                dash.isNotEmpty() -> "{%- $keyword"
+                else -> "{% $keyword"
             }
         }
 
@@ -109,6 +130,13 @@ object SaltFormatter {
         t = Regex("\\s\\s+((-?)?\\}\\})").replace(t, " $1")
         t = Regex("(\\{%-?\\s)\\s+").replace(t, "$1")
         t = Regex("\\s\\s+((-?)?%\\})").replace(t, " $1")
+
+        // Safety net for content-injecting tags: also drop a trailing `-%}`, which
+        // would fuse the *following* line into the injected content. These tags are
+        // always single-line, so this never touches multi-line tag continuations.
+        for (keyword in CONTENT_INJECTING_TAGS) {
+            t = Regex("(\\{%\\s*$keyword\\b[^%]*?)\\s*-%\\}").replace(t, "$1 %}")
+        }
 
         return t
     }
