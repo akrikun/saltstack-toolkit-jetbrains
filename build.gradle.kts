@@ -37,7 +37,9 @@ intellijPlatform {
         version = providers.gradleProperty("pluginVersion")
         ideaVersion {
             sinceBuild = providers.gradleProperty("pluginSinceBuild")
-            untilBuild = providers.gradleProperty("pluginUntilBuild")
+            // No upper bound: the plugin only uses stable platform APIs, and a
+            // capped until-build silently drops it from every new IDE release.
+            untilBuild = provider { null }
         }
     }
 
@@ -48,7 +50,7 @@ intellijPlatform {
             // 241 = 2024.1) plus a recent release. Keep the set small —
             // each IDE adds ~500 MB download to CI runtime.
             ide("IC", "2024.1")
-            ide("IC", "2024.3")
+            ide("IC", "2026.2")
         }
     }
 
