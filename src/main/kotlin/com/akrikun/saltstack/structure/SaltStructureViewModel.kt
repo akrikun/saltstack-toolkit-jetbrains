@@ -36,6 +36,7 @@ class SaltStructureViewElement(
     override fun getValue(): Any = file
 
     override fun navigate(requestFocus: Boolean) {
+        if (!file.isValid) return
         val nav = file as? Navigatable ?: return
         if (offset > 0) {
             (file.findElementAt(offset) as? Navigatable)?.navigate(requestFocus)
@@ -44,8 +45,8 @@ class SaltStructureViewElement(
         }
     }
 
-    override fun canNavigate(): Boolean = file.canNavigate()
-    override fun canNavigateToSource(): Boolean = file.canNavigateToSource()
+    override fun canNavigate(): Boolean = file.isValid && file.canNavigate()
+    override fun canNavigateToSource(): Boolean = file.isValid && file.canNavigateToSource()
     override fun getAlphaSortKey(): String = displayName
 
     override fun getPresentation(): ItemPresentation = object : ItemPresentation {
@@ -63,6 +64,11 @@ class SaltStructureViewElement(
 
     override fun getChildren(): Array<TreeElement> {
         if (kind != NodeKind.FILE) return emptyArray()
+        // The platform (e.g. Minimap's structure collector) may call this on a
+        // stale element after a rootsChanged event replaced the file's view
+        // provider — accessing PSI then throws PsiInvalidElementAccessException.
+        // Same contract as PsiTreeElementBase: invalid PSI → no children.
+        if (!file.isValid) return emptyArray()
         return parseFile(file)
     }
 

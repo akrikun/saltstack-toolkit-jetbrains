@@ -100,7 +100,11 @@
         <ul>
             <li><b>Compatibility with 2026.2 (build 262) and later</b>: removed the
                 <code>until-build</code> upper bound so the plugin stays available on new
-                IDE releases without requiring a re-publish. No functional changes.</li>
+                IDE releases without requiring a re-publish.</li>
+            <li><b>Structure View crash fixed</b>: <code>PsiInvalidElementAccessException</code>
+                when the IDE rebuilt PSI after a roots change (e.g. an SDK update) while the
+                Minimap/Structure View was reading an SLS file's structure. Stale PSI is now
+                detected and skipped instead of throwing.</li>
         </ul>
 
         <h3>1.6.3</h3>
