@@ -56,10 +56,10 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
 
       - name: Test
-        run: gradle --no-daemon test
+        run: ./gradlew --no-daemon test
 
       - name: Build plugin distribution
-        run: gradle --no-daemon buildPlugin
+        run: ./gradlew --no-daemon buildPlugin
 
       - name: Publish to JetBrains Marketplace
         env:
@@ -68,7 +68,7 @@ jobs:
           if [ -z "$PUBLISH_TOKEN" ]; then
             echo "::warning::JETBRAINS_MARKETPLACE_TOKEN secret not set; skipping JetBrains Marketplace publish."
           else
-            gradle --no-daemon publishPlugin
+            ./gradlew --no-daemon publishPlugin
           fi
 
       - name: Create GitHub Release
