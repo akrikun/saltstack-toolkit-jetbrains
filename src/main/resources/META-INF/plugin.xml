@@ -96,6 +96,14 @@
     ]]></description>
 
     <change-notes><![CDATA[
+        <h3>1.6.6</h3>
+        <ul>
+            <li><b>Formatter keeps indentation of standalone closers</b>: a closing
+                <code>%}</code> / <code>}}</code> on its own line (e.g. ending a multi-line
+                <code>{%- set x = {...} %}</code>) no longer has its leading indentation
+                collapsed to a single space on save/format.</li>
+        </ul>
+
         <h3>1.6.5</h3>
         <ul>
             <li><b>Structure View crash fixed</b>: <code>PsiInvalidElementAccessException</code>

@@ -125,11 +125,12 @@ object SaltFormatter {
             if (m.groupValues[1].isNotEmpty()) " -}}" else " }}"
         }
 
-        // Cleanup: collapse double-spaces inside tags
+        // Cleanup: collapse double-spaces inside tags. Closers require content before
+        // the spaces so a standalone closer's leading indentation is left alone.
         t = Regex("(\\{\\{-?\\s)\\s+").replace(t, "$1")
-        t = Regex("\\s\\s+((-?)?\\}\\})").replace(t, " $1")
+        t = Regex("(?<=\\S)\\s\\s+((-?)?\\}\\})").replace(t, " $1")
         t = Regex("(\\{%-?\\s)\\s+").replace(t, "$1")
-        t = Regex("\\s\\s+((-?)?%\\})").replace(t, " $1")
+        t = Regex("(?<=\\S)\\s\\s+((-?)?%\\})").replace(t, " $1")
 
         // Safety net for content-injecting tags: also drop a trailing `-%}`, which
         // would fuse the *following* line into the injected content. These tags are
