@@ -121,6 +121,32 @@ class SaltFormatterTest {
         // Was a regression previously: regex inserted a leading space.
         assertEquals("%}", SaltFormatter.normalizeJinjaExpressions("%}", true))
         assertEquals("}}", SaltFormatter.normalizeJinjaExpressions("}}", true))
+        assertEquals("-%}", SaltFormatter.normalizeJinjaExpressions("-%}", true))
+        assertEquals("-}}", SaltFormatter.normalizeJinjaExpressions("-}}", true))
+    }
+
+    @Test
+    fun `indented standalone closer keeps its indentation`() {
+        // Regression: the double-space cleanup collapsed leading indentation to one space.
+        assertEquals("  %}", SaltFormatter.normalizeJinjaExpressions("  %}", true))
+        assertEquals("    -%}", SaltFormatter.normalizeJinjaExpressions("    -%}", true))
+        assertEquals("  }}", SaltFormatter.normalizeJinjaExpressions("  }}", true))
+        assertEquals("    -}}", SaltFormatter.normalizeJinjaExpressions("    -}}", true))
+    }
+
+    @Test
+    fun `multiline-set block keeps closer indentation`() {
+        val input = """
+            |{%- if x %}
+            |
+            |  {%- set targets = {"first": "a",
+            |      "kafka": "b",
+            |      }
+            |  %}
+            |
+            |{%- endif %}
+            |""".trimMargin()
+        assertEquals(input, SaltFormatter.format(input, true))
     }
 
     @Test

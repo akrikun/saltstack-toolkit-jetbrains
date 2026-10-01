@@ -112,8 +112,9 @@ object SaltFormatter {
             }
         }
 
-        // Closing %} — only when there's actual content before
-        t = Regex("(?<=[^\\s%])\\s*(-?)%\\}").replace(t) { m ->
+        // Closing %} — only when there's actual content before. The lookbehind
+        // excludes `-` so a standalone `-%}` isn't read as content + `%}`.
+        t = Regex("(?<=[^\\s%-])\\s*(-?)%\\}").replace(t) { m ->
             if (m.groupValues[1].isNotEmpty()) " -%}" else " %}"
         }
 
@@ -121,15 +122,16 @@ object SaltFormatter {
         t = Regex("\\{\\{(-?)\\s*(?![\\s}])").replace(t) { m ->
             if (m.groupValues[1].isNotEmpty()) "{{- " else "{{ "
         }
-        t = Regex("(?<=[^\\s{])\\s*(-?)\\}\\}").replace(t) { m ->
+        t = Regex("(?<=[^\\s{-])\\s*(-?)\\}\\}").replace(t) { m ->
             if (m.groupValues[1].isNotEmpty()) " -}}" else " }}"
         }
 
-        // Cleanup: collapse double-spaces inside tags
+        // Cleanup: collapse double-spaces inside tags. Closers require content before
+        // the spaces so a standalone closer's leading indentation is left alone.
         t = Regex("(\\{\\{-?\\s)\\s+").replace(t, "$1")
-        t = Regex("\\s\\s+((-?)?\\}\\})").replace(t, " $1")
+        t = Regex("(?<=\\S)\\s\\s+((-?)?\\}\\})").replace(t, " $1")
         t = Regex("(\\{%-?\\s)\\s+").replace(t, "$1")
-        t = Regex("\\s\\s+((-?)?%\\})").replace(t, " $1")
+        t = Regex("(?<=\\S)\\s\\s+((-?)?%\\})").replace(t, " $1")
 
         // Safety net for content-injecting tags: also drop a trailing `-%}`, which
         // would fuse the *following* line into the injected content. These tags are
