@@ -102,6 +102,9 @@
                 <code>%}</code> / <code>}}</code> on its own line (e.g. ending a multi-line
                 <code>{%- set x = {...} %}</code>) no longer has its leading indentation
                 collapsed to a single space on save/format.</li>
+            <li><b>Standalone <code>-%}</code> / <code>-}}</code> no longer broken</b>: a
+                whitespace-control closer on its own line was rewritten to
+                <code>- %}</code>, which is invalid Jinja.</li>
         </ul>
 
         <h3>1.6.5</h3>

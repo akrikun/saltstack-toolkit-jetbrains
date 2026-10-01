@@ -121,6 +121,8 @@ class SaltFormatterTest {
         // Was a regression previously: regex inserted a leading space.
         assertEquals("%}", SaltFormatter.normalizeJinjaExpressions("%}", true))
         assertEquals("}}", SaltFormatter.normalizeJinjaExpressions("}}", true))
+        assertEquals("-%}", SaltFormatter.normalizeJinjaExpressions("-%}", true))
+        assertEquals("-}}", SaltFormatter.normalizeJinjaExpressions("-}}", true))
     }
 
     @Test

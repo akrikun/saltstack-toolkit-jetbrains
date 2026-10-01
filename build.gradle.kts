@@ -49,8 +49,11 @@ intellijPlatform {
             // Verify against IDEA Community at the lower bound (since-build
             // 241 = 2024.1) plus a recent release. Keep the set small —
             // each IDE adds ~500 MB download to CI runtime.
+            // Since 2025.3 JetBrains ships a single unified IntelliJ IDEA and no
+            // longer publishes a separate Community (IC) binary, so newer
+            // releases are verified against IU.
             ide("IC", "2024.1")
-            ide("IC", "2026.2")
+            ide("IU", "2026.2")
         }
     }
 
